@@ -1,0 +1,30 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install pytest ruff
+      - run: ruff check src tests tools
+      - run: pytest -q
+      - name: Run on the fixtures like a user would
+        run: |
+          pip install .
+          forever-lint tests/fixtures/Ported
+          forever-lint tests/fixtures/Sample --format sarif --fail-on never -o sample.sarif
+          python -c "import json; json.load(open('sample.sarif'))"

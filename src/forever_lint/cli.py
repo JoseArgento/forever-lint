@@ -1,0 +1,153 @@
+"""Command line interface."""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+from . import __version__, analyzer, report
+from . import db as dbmod
+from . import toc as tocmod
+from .analyzer import ERROR, NOTE, WARNING
+
+LEVELS = {"error": 0, "warning": 1, "note": 2}
+
+
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog="forever-lint",
+        description="Checks World of Warcraft addons for problems on WoW Forever: removed and deprecated API, "
+        "secret values, WOW_PROJECT_ID checks, events and TOC files.",
+    )
+    p.add_argument("paths", nargs="*", type=Path, help="addon folders, a whole AddOns folder, or Lua files")
+    p.add_argument("-f", "--format", choices=["text", "json", "sarif"], default="text")
+    p.add_argument("-o", "--output", type=Path, help="write the report to a file instead of stdout")
+    p.add_argument("--libs", action="store_true", help="list findings in embedded libraries too (they never fail the run)")
+    p.add_argument(
+        "--fail-on",
+        choices=["error", "warning", "note", "never"],
+        default="error",
+        help="exit 1 at this severity or worse (default: error)",
+    )
+    p.add_argument("--ignore", default="", help="comma-separated rule IDs to skip, e.g. FL002,FL004")
+    p.add_argument("--all-files", action="store_true", help="lint every .lua file instead of only those Forever's TOC loads")
+    p.add_argument("--db", type=Path, help=argparse.SUPPRESS)
+    p.add_argument("--explain", metavar="NAME", help="show what Forever has for an API name (e.g. GetSpellInfo) and exit")
+    p.add_argument("--list-rules", action="store_true", help="list the rules and exit")
+    p.add_argument("--no-color", action="store_true")
+    p.add_argument("--version", action="version", version=f"forever-lint {__version__}")
+    return p
+
+
+def explain(db: dbmod.ApiDb, name: str) -> str:
+    lines = [f"{name} on {db.label}:"]
+    if name in db.available and name not in db.deprecated:
+        lines.append("  available")
+    if name in db.deprecated:
+        d = db.deprecated[name]
+        lines.append(f"  deprecation fallback only ({d['file']})" + (f" -> use {d['to']}" if d.get("to") else ""))
+    if name in db.removed:
+        e = db.removed[name]
+        lines.append(f"  missing (exists in: {', '.join(e.get('in', []))})")
+        if e.get("restricted"):
+            lines.append(f"  points to {e['restricted']}, which addons cannot use")
+        if e.get("use"):
+            lines.append(("  probably replaced by " if e.get("guess") else "  replaced by ") + ", ".join(e["use"]))
+    if name in db.secret:
+        s = db.secret[name]
+        lines.append(
+            "  returns secret values " + ("always" if s["always"] else "when " + ", ".join(s["when"]) if s["when"] else "conditionally")
+        )
+    if name in db.events:
+        lines.append("  event exists" + (f" (restricted: {', '.join(db.events_restricted[name])})" if name in db.events_restricted else ""))
+    elif name in db.events_removed:
+        lines.append("  event does not exist in Forever")
+    if len(lines) == 1:
+        close = sorted(n for n in db.available if n.lower().endswith(name.lower()))[:8]
+        lines.append("  unknown name" + (f"; similar: {', '.join(close)}" if close else ""))
+    return "\n".join(lines) + "\n"
+
+
+def run(args: argparse.Namespace) -> tuple[str, int]:
+    db = dbmod.load(args.db)
+    if args.list_rules:
+        return "".join(f"{rid}  {name:18} {sev:8} {short}\n" for rid, (name, short, sev) in report.RULES.items()), 0
+    if args.explain:
+        return explain(db, args.explain), 0
+    if not args.paths:
+        raise SystemExit("forever-lint: give at least one addon folder or Lua file (see --help)")
+
+    ignore = {r.strip().upper() for r in args.ignore.split(",") if r.strip()}
+    addons: list[tocmod.Addon] = []
+    loose: list[Path] = []
+    for path in args.paths:
+        if not path.exists():
+            raise SystemExit(f"forever-lint: {path} does not exist")
+        if path.is_file():
+            loose.append(path.resolve())
+            continue
+        found = tocmod.find_addons(path)
+        if not found:
+            loose += sorted(p.resolve() for p in path.rglob("*.lua"))
+        for a in found:
+            tocmod.resolve(a)
+            if args.all_files or a.toc is None:
+                a.lua_files = sorted(p.resolve() for p in a.root.rglob("*.lua") if not _inside_other(p, a, found))
+            addons.append(a)
+
+    base = Path.cwd().resolve()
+    scans: list[analyzer.FileScan] = []
+    owner: dict[str, Path] = {}
+    for a in addons:
+        for f in a.lua_files:
+            owner[str(f)] = a.root
+    seen: set[str] = set()
+    for f in [p for a in addons for p in a.lua_files] + loose:
+        key = str(f)
+        if key in seen:
+            continue
+        seen.add(key)
+        source = f.read_bytes().decode("utf-8-sig", errors="replace")
+        scans.append(analyzer.scan(key, source))
+
+    def is_lib(path: str) -> bool:
+        root = owner.get(path)
+        rel = str(Path(path).relative_to(root)) if root else Path(path).name
+        return tocmod.is_library(rel)
+
+    findings = [f for f in analyzer.check(scans, db, is_lib) if f.rule not in ignore]
+    for a in addons:
+        a.problems = [p for p in a.problems if p[0] not in ignore]
+
+    if args.format == "json":
+        out = report.as_json(findings, addons, db, base)
+    elif args.format == "sarif":
+        out = report.sarif(findings, addons, db, base)
+    else:
+        out = report.text(findings, addons, db, base, args.libs, color=False if (args.no_color or args.output) else None)
+
+    code = 0
+    if args.fail_on != "never":
+        limit = LEVELS[args.fail_on]
+        severities = [f.severity for f in findings if not f.library] + [sev for a in addons for _, sev, _ in a.problems]
+        if any(LEVELS[s] <= limit for s in severities):
+            code = 1
+    return out, code
+
+
+def _inside_other(path: Path, addon: tocmod.Addon, all_addons: list[tocmod.Addon]) -> bool:
+    return any(o is not addon and o.root != addon.root and o.root in path.parents and addon.root in o.root.parents for o in all_addons)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+    out, code = run(args)
+    if args.output:
+        args.output.write_text(out, encoding="utf-8")
+    else:
+        sys.stdout.write(out)
+    return code
+
+
+__all__ = ["main", "ERROR", "WARNING", "NOTE"]

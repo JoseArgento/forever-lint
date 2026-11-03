@@ -1,0 +1,4 @@
+## Interface: 11509, 120105
+## Title: Sample
+Core.lua
+UI.xml

@@ -1,0 +1,7 @@
+## Interface: 16001
+## Title: Ported
+Libs\LibFoo\LibFoo.lua
+Core.lua
+Classic.lua [AllowLoadGameType vanilla]
+Locale.[TextLocale].lua [AllowLoadTextLocale enUS, deDE]
+Retail.lua [ExcludeLoadGameType camelot][AllowLoadTextLocale enUS]

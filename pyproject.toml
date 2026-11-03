@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "forever-lint"
+version = "0.1.0"
+description = "Checks World of Warcraft addons for problems on WoW Forever: removed API, secret values, project ID checks, events and TOC files."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "José Argento" }]
+requires-python = ">=3.10"
+dependencies = []
+keywords = ["world-of-warcraft", "wow", "addon", "lua", "lint", "static-analysis", "sarif"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Programming Language :: Lua",
+  "Programming Language :: Python :: 3",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Games/Entertainment",
+]
+
+[project.urls]
+Homepage = "https://github.com/JoseArgento/forever-lint"
+Issues = "https://github.com/JoseArgento/forever-lint/issues"
+
+[project.scripts]
+forever-lint = "forever_lint.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/forever_lint"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tools", "tests", "README.md", "README.es.md", "LICENSE", "CHANGELOG.md", "action.yml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 140
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501"]

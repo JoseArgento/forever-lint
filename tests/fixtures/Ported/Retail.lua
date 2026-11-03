@@ -1,0 +1,1 @@
+GetQuestLogTitle(1)

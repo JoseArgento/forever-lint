@@ -1,0 +1,3 @@
+## Interface: 120105
+## AllowLoadGameType: standard
+Main.lua
