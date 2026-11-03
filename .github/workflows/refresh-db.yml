@@ -33,10 +33,9 @@ jobs:
               '/Interface/AddOns/Blizzard_FrameXML/Deprecated*' '/Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Deprecated.lua' \
               '/Interface/AddOns/Blizzard_APIDocumentationGenerated/'
             git checkout -q FETCH_HEAD
-            echo "$b=$(git log -1 --format=%s)" >> "$GITHUB_ENV.tmp"
+            echo "UI_${b^^}=$(git log -1 --format=%s)" >> "$GITHUB_ENV"   # UI_FOREVER, UI_CLASSIC_ERA
             cd ..
           done
-          sed 's/^forever=/UI_FOREVER=/; s/^classic_era=/UI_ERA=/' "$GITHUB_ENV.tmp" >> "$GITHUB_ENV"
       - name: Rebuild
         run: |
           python tools/build_db.py --bir vendor --ui-forever vendor/ui-forever --ui-era vendor/ui-classic_era \

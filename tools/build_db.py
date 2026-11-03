@@ -375,7 +375,7 @@ def main() -> int:
         "events_restricted": dict(sorted(restricted_events.items())),
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(db, separators=(",", ":"), sort_keys=False) + "\n", encoding="utf-8")
+    args.out.write_text(json.dumps(db, indent=1, sort_keys=False) + "\n", encoding="utf-8")
     print(
         f"forever {db['forever'].get('version')} ({db['forever'].get('build')}): "
         f"{len(available)} available, {len(deprecated)} via deprecation fallbacks, {len(removed)} removed/absent, "
