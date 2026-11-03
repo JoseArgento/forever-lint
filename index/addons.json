@@ -1,0 +1,20 @@
+{
+  "_comment": "Public GitHub repositories checked by the compatibility index. Add an entry and open a pull request to include another addon.",
+  "addons": [
+    {"name": "Questie", "repo": "Questie/Questie"},
+    {"name": "Details! Damage Meter", "repo": "Tercioo/Details-Damage-Meter"},
+    {"name": "BigWigs", "repo": "BigWigsMods/BigWigs"},
+    {"name": "LittleWigs", "repo": "BigWigsMods/LittleWigs"},
+    {"name": "Deadly Boss Mods", "repo": "DeadlyBossMods/DeadlyBossMods"},
+    {"name": "DBM Vanilla", "repo": "DeadlyBossMods/DBM-Vanilla"},
+    {"name": "Bartender4", "repo": "Nevcairiel/Bartender4"},
+    {"name": "ElvUI", "repo": "tukui-org/ElvUI"},
+    {"name": "WeakAuras", "repo": "WeakAuras/WeakAuras2"},
+    {"name": "Plater Nameplates", "repo": "Tercioo/Plater-Nameplates"},
+    {"name": "AdiBags", "repo": "AdiAddons/AdiBags"},
+    {"name": "OmniCC", "repo": "tullamods/OmniCC"},
+    {"name": "Bagnon", "repo": "Jaliborc/Bagnon"},
+    {"name": "NDui", "repo": "Witnesscm/NDui"},
+    {"name": "RealUI", "repo": "Gethe/RealUI"}
+  ]
+}

@@ -55,6 +55,10 @@ Silenciar: `-- forever-lint: ignore FL001` en la línea, `-- forever-lint: ignor
 
 Sube un SARIF a code scanning, así los hallazgos aparecen como anotaciones en el pull request (hace falta `security-events: write`).
 
+## Índice de compatibilidad
+
+`index/` arma una web estática: corre forever-lint sobre addons populares con repo público en GitHub (`index/addons.json`) y la publica en GitHub Pages cada semana. Muestra archivo, línea y mensaje de cada hallazgo, nunca el código de los addons. Para sumar un addon, abrí un pull request con su repo en `index/addons.json`.
+
 ## De dónde salen los datos
 
 `tools/build_db.py` arma `src/forever_lint/data/api.json`, y un workflow semanal lo regenera cuando Blizzard parchea Forever:

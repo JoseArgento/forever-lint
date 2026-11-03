@@ -113,7 +113,10 @@ def run(args: argparse.Namespace) -> tuple[str, int]:
 
     def is_lib(path: str) -> bool:
         root = owner.get(path)
-        rel = str(Path(path).relative_to(root)) if root else Path(path).name
+        try:
+            rel = str(Path(path).relative_to(root)) if root else Path(path).name
+        except ValueError:  # a TOC can load files from a sibling folder (../Other/file.lua)
+            rel = Path(path).name
         return tocmod.is_library(rel)
 
     findings = [f for f in analyzer.check(scans, db, is_lib) if f.rule not in ignore]

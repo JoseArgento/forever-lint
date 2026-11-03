@@ -102,3 +102,13 @@ def test_database_facts():
     assert "C_SpellBook" not in db.removed and "math" not in db.removed
     assert all(n[0].isupper() or n.startswith("C_") or "." in n or n[0] == "_" or n[0].islower() for n in db.removed)
     assert not [n for n in db.removed if n in ("name", "value", "info")]
+
+
+def test_toc_loading_a_file_from_a_sibling_folder(tmp_path):
+    # Regression: RealUI's SharedMedia TOC loads ../SharedMedia_MyMedia/MyMedia.lua and the CLI crashed.
+    (tmp_path / "A").mkdir()
+    (tmp_path / "B").mkdir()
+    (tmp_path / "A" / "A.toc").write_text("## Interface: 16001\n..\\B\\shared.lua\n")
+    (tmp_path / "B" / "shared.lua").write_text("GetItemInfo(1)")
+    out, _ = run(tmp_path / "A", "--format", "json")
+    assert [f["name"] for f in json.loads(out)["findings"]] == ["GetItemInfo"]

@@ -7,3 +7,5 @@ build/
 vendor/
 *.sarif
 summary.txt
+.index-cache/
+site/
