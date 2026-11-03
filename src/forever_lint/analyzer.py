@@ -30,6 +30,7 @@ STATEMENT_KW = {"local", "if", "for", "while", "repeat", "return", "do", "end", 
 GUARD_BEFORE_KW = {"if", "elseif", "while", "and", "or", "not", "until"}
 GUARD_AFTER = {"and", "or", "then", "do"}
 EVENT_METHODS = {"RegisterEvent", "RegisterUnitEvent", "RegisterEventCallback", "UnregisterEvent", "IsEventRegistered", "RegisterMessage"}
+ADDON_MESSAGE_SENDERS = {"C_ChatInfo.SendAddonMessage", "C_ChatInfo.SendAddonMessageLogged", "SendAddonMessage"}
 EVENT_REGISTER = {"RegisterEvent", "RegisterUnitEvent", "RegisterEventCallback"}
 
 _SUPPRESS_RE = re.compile(r"forever-lint:\s*(ignore-file|ignore-next-line|ignore)(?:\s*=?\s*\[?([A-Z0-9,\s]+)\]?)?", re.I)
@@ -352,12 +353,29 @@ def check(scans: list[FileScan], db: ApiDb, is_library) -> list[Finding]:
     for s in scans:
         addon_defines |= s.defines
     findings: list[Finding] = []
+    trial_noted = False
     for s in scans:
         lib = is_library(s.path)
         out: list[Finding] = []
         _api_rules(s, db, addon_defines, out)
         _secret_rule(s, db, addon_defines, out)
         _string_rules(s, db, out)
+        if not trial_noted and not lib:
+            sender = next((r for r in s.refs if r.is_call and r.name in ADDON_MESSAGE_SENDERS), None)
+            if sender is not None:
+                trial_noted = True
+                out.append(
+                    Finding(
+                        "FL012",
+                        NOTE,
+                        s.path,
+                        sender.tok.line,
+                        sender.tok.col,
+                        "Trial accounts cannot send addon messages in Forever (1.60.1). Expect the send to fail for those players "
+                        "and keep the addon working without replies.",
+                        sender.name,
+                    )
+                )
         for f in out:
             f.library = lib
         findings += [f for f in out if not _suppressed(s, f)]
@@ -564,6 +582,14 @@ def _secret_finding(path: str, tok: Token, fn: str, info: dict, via: str | None 
     return Finding("FL003", WARNING, path, tok.line, tok.col, msg, fn)
 
 
+def _chain_start(toks: list[Token], k: int) -> int:
+    """Index of the first token of ``a.b.c`` / ``a:b`` ending just before ``k`` (``k`` is the ``:`` of the method call)."""
+    j = k - 1
+    while j >= 2 and toks[j].kind == NAME and toks[j - 1].is_op(".", ":") and toks[j - 2].kind == NAME:
+        j -= 2
+    return j
+
+
 def _string_rules(s: FileScan, db: ApiDb, out: list[Finding]) -> None:
     toks = s.tokens
     n = len(toks)
@@ -595,6 +621,59 @@ def _string_rules(s: FileScan, db: ApiDb, out: list[Finding]) -> None:
                     out.append(
                         Finding("FL006", WARNING, s.path, arg.line, arg.col, f"Event `{ev}`: {why}.", ev, extra={"reasons": reasons})
                     )
+        # SendChatMessage(msg, "SAY"|"YELL"|"EMOTE") needs a hardware event outside instances (EMOTE since 1.60.1)
+        if t.value == "SendChatMessage" and k + 1 < n and toks[k + 1].is_op("("):
+            close = _closing(toks, k + 1)
+            depth, commas, arg = 0, 0, None
+            for x in toks[k + 2 : close]:
+                if x.is_op("(", "[", "{"):
+                    depth += 1
+                elif x.is_op(")", "]", "}"):
+                    depth -= 1
+                elif depth == 0 and x.is_op(","):
+                    commas += 1
+                elif depth == 0 and commas == 1 and arg is None:
+                    arg = x
+            kind = arg.value.upper() if arg is not None and arg.kind == STRING else ("SAY" if commas == 0 else None)
+            if kind in ("SAY", "YELL", "EMOTE"):
+                out.append(
+                    Finding(
+                        "FL011",
+                        NOTE,
+                        s.path,
+                        t.line,
+                        t.col,
+                        f'Sending "{kind}" from addon code outside instances needs a hardware event (a key press or click) in Forever: '
+                        "calls from timers or event handlers fail there (inside dungeons and raids it works). EMOTE joined SAY and YELL in 1.60.1.",
+                        "SendChatMessage",
+                        extra={"chatType": kind},
+                    )
+                )
+        # frame:GetFrameStrata() can return a secret value (1.60.1): comparing it raises an error
+        if (
+            t.value == "GetFrameStrata"
+            and k >= 1
+            and toks[k - 1].is_op(":")
+            and k + 2 < n
+            and toks[k + 1].is_op("(")
+            and toks[k + 2].is_op(")")
+        ):
+            after = toks[k + 3] if k + 3 < n else None
+            before_chain = _chain_start(toks, k - 1)
+            before = toks[before_chain - 1] if before_chain else None
+            if (after is not None and after.is_op("==", "~=")) or (before is not None and before.is_op("==", "~=")):
+                out.append(
+                    Finding(
+                        "FL003",
+                        WARNING,
+                        s.path,
+                        t.line,
+                        t.col,
+                        "`GetFrameStrata` returns a secret value in Forever for frames with the FrameStrata secret aspect (1.60.1), "
+                        "and comparing a secret value raises a Lua error in addon code. Test it with `issecretvalue()` first.",
+                        "GetFrameStrata",
+                    )
+                )
         # hooksecurefunc("GlobalName", fn)
         if t.value == "hooksecurefunc" and k + 2 < n and toks[k + 1].is_op("(") and toks[k + 2].kind == STRING:
             if k + 3 < n and toks[k + 3].is_op(","):

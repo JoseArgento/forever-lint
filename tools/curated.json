@@ -1,17 +1,50 @@
 {
   "_comment": "Replacements the generated data cannot infer. build_db.py drops any target that does not exist in Forever. Source: Blizzard's own deprecation shims and API change notes on warcraft.wiki.gg.",
-  "known": ["SendAddonMessage", "RegisterAddonMessagePrefix", "IsAddonMessagePrefixRegistered", "GetRegisteredAddonMessagePrefixes"],
+  "known": [
+    "SendAddonMessage",
+    "RegisterAddonMessagePrefix",
+    "IsAddonMessagePrefixRegistered",
+    "GetRegisteredAddonMessagePrefixes",
+    "require"
+  ],
   "use": {
-    "SendAddonMessage": ["C_ChatInfo.SendAddonMessage"],
-    "RegisterAddonMessagePrefix": ["C_ChatInfo.RegisterAddonMessagePrefix"],
-    "IsAddonMessagePrefixRegistered": ["C_ChatInfo.IsAddonMessagePrefixRegistered"],
-    "GetRegisteredAddonMessagePrefixes": ["C_ChatInfo.GetRegisteredAddonMessagePrefixes"],
-    "GetMouseFocus": ["GetMouseFoci"],
-    "InterfaceOptions_AddCategory": ["Settings.RegisterCanvasLayoutCategory", "Settings.RegisterAddOnCategory"],
-    "InterfaceOptionsFrame_OpenToCategory": ["Settings.OpenToCategory"],
-    "EasyMenu": ["MenuUtil.CreateContextMenu"],
-    "UnitAura": ["C_UnitAuras.GetAuraDataByIndex", "AuraUtil.UnpackAuraData"],
-    "UnitBuff": ["C_UnitAuras.GetBuffDataByIndex"],
-    "UnitDebuff": ["C_UnitAuras.GetDebuffDataByIndex"]
+    "SendAddonMessage": [
+      "C_ChatInfo.SendAddonMessage"
+    ],
+    "RegisterAddonMessagePrefix": [
+      "C_ChatInfo.RegisterAddonMessagePrefix"
+    ],
+    "IsAddonMessagePrefixRegistered": [
+      "C_ChatInfo.IsAddonMessagePrefixRegistered"
+    ],
+    "GetRegisteredAddonMessagePrefixes": [
+      "C_ChatInfo.GetRegisteredAddonMessagePrefixes"
+    ],
+    "GetMouseFocus": [
+      "GetMouseFoci"
+    ],
+    "InterfaceOptions_AddCategory": [
+      "Settings.RegisterCanvasLayoutCategory",
+      "Settings.RegisterAddOnCategory"
+    ],
+    "InterfaceOptionsFrame_OpenToCategory": [
+      "Settings.OpenToCategory"
+    ],
+    "EasyMenu": [
+      "MenuUtil.CreateContextMenu"
+    ],
+    "UnitAura": [
+      "C_UnitAuras.GetAuraDataByIndex",
+      "AuraUtil.UnpackAuraData"
+    ],
+    "UnitBuff": [
+      "C_UnitAuras.GetBuffDataByIndex"
+    ],
+    "UnitDebuff": [
+      "C_UnitAuras.GetDebuffDataByIndex"
+    ],
+    "require": [
+      "import"
+    ]
   }
 }

@@ -24,6 +24,8 @@ RULES = {
     "FL008": ("no-forever-toc", "No TOC file that Forever loads", ERROR),
     "FL009": ("toc-interface", "TOC Interface does not include 16001", WARNING),
     "FL010": ("toc-game-type", "TOC excludes the Forever game type", ERROR),
+    "FL011": ("chat-hardware-event", "SAY/YELL/EMOTE sent without a hardware event", NOTE),
+    "FL012": ("trial-addon-messages", "Addon messages fail on trial accounts", NOTE),
 }
 
 SEVERITY_ORDER = {ERROR: 0, WARNING: 1, NOTE: 2}

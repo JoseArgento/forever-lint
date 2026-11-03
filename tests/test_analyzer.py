@@ -159,3 +159,25 @@ def test_method_and_dotted_function_definitions(db):
         "function MyAddon:GetSpellInfo() end\nfunction MyAddon.GetItemInfo() end\nlocal o = {}\nfunction o.x(UnitAura) return UnitAura end"
     )
     assert by_rule(lint(db, src), "FL001") == []
+
+
+def test_require_renamed_to_import(db):
+    f = by_rule(lint(db, 'local m = require("mod")'), "FL001")
+    assert f and "`import`" in f[0].message
+
+
+def test_chat_hardware_event(db):
+    src = 'C_ChatInfo.SendChatMessage("hi", "EMOTE")\nC_ChatInfo.SendChatMessage(msg, "GUILD")\nC_ChatInfo.SendChatMessage(msg)\nC_ChatInfo.SendChatMessage(fmt("%d", x), "yell")'
+    f = by_rule(lint(db, src), "FL011")
+    assert [x.extra["chatType"] for x in f] == ["EMOTE", "SAY", "YELL"]
+
+
+def test_trial_accounts_note_once(db):
+    f = by_rule(lint(db, 'C_ChatInfo.SendAddonMessage("P", "x", "RAID")', 'C_ChatInfo.SendAddonMessage("P", "y", "RAID")'), "FL012")
+    assert len(f) == 1 and f[0].severity == "note"
+
+
+def test_frame_strata_comparison(db):
+    src = 'if frame:GetFrameStrata() == "HIGH" then end\nif "LOW" ~= self.bar:GetFrameStrata() then end\nlocal s = frame:GetFrameStrata()'
+    f = [x for x in lint(db, src) if x.name == "GetFrameStrata"]
+    assert [x.line for x in f] == [1, 2]

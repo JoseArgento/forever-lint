@@ -335,7 +335,7 @@ def main() -> int:
         src = [fl for fl in FLAVORS[1:] if n in dumps[fl]["api"] | dumps[fl]["lua"] | dumps[fl]["framexml"]]
         if n in era_shims:
             src.append("classic_era:deprecated")
-        entry["in"] = src or (["history"] if n in history else ["deprecated"])
+        entry["in"] = src or (["history"] if n in history else ["notes"] if n in curated.get("known", []) else ["deprecated"])
         if n in dumps["classic_era"]["framexml"] and n not in dumps["classic_era"]["api"]:
             entry["ui"] = True
         removed[n] = entry

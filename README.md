@@ -36,7 +36,7 @@ forever-lint path/to/MyAddon   # one addon, a repo with several, or your whole A
 |---|---|---|
 | <a id="fl001-removed-api"></a>**FL001** removed-api | error | A function, namespace or Blizzard UI function that does not exist in Forever, with its replacement when there is one. Also `hooksecurefunc("Name", ...)` on a missing global, which raises an error. |
 | <a id="fl002-deprecated-api"></a>**FL002** deprecated-api | warning | API that only exists as one of Blizzard's deprecation fallbacks (loaded while the `loadDeprecationFallbacks` CVar is on). Blizzard says these will be removed. |
-| <a id="fl003-secret-value"></a>**FL003** secret-value | warning | Arithmetic or comparisons on the result of a function documented to return secret values (`UnitHealth`, `UnitPower` when restricted, ...). In addon code that raises a Lua error. |
+| <a id="fl003-secret-value"></a>**FL003** secret-value | warning | Arithmetic or comparisons on the result of a function documented to return secret values (`UnitHealth`, `UnitPower` when restricted, `frame:GetFrameStrata()` since 1.60.1, ...). In addon code that raises a Lua error. |
 | <a id="fl004-project-id"></a>**FL004** project-id | warning | `WOW_PROJECT_ID` comparisons, with what they evaluate to in Forever (18, `WOW_PROJECT_CAMELOT`). Lines that already mention `WOW_PROJECT_CAMELOT` are notes. |
 | <a id="fl005-removed-event"></a>**FL005** removed-event | error | `RegisterEvent("EVENT")` for an event Forever does not have. |
 | <a id="fl006-restricted-event"></a>**FL006** restricted-event | warning | Events with restrictions or secret payloads, such as `COMBAT_LOG_EVENT_UNFILTERED`. |
@@ -44,6 +44,8 @@ forever-lint path/to/MyAddon   # one addon, a repo with several, or your whole A
 | <a id="fl008-no-forever-toc"></a>**FL008** no-forever-toc | error | No TOC that Forever loads. It looks for `_Camelot`, `_Forever`, `_Mainline`, then the plain `.toc`. |
 | <a id="fl009-toc-interface"></a>**FL009** toc-interface | warning | The TOC's `## Interface:` does not list 16001, so the addon shows as out of date. |
 | <a id="fl010-toc-game-type"></a>**FL010** toc-game-type | note | The TOC excludes Forever with `AllowLoadGameType`/`ExcludeLoadGameType`. Fine if on purpose. |
+| <a id="fl011-chat-hardware-event"></a>**FL011** chat-hardware-event | note | `SendChatMessage` with SAY, YELL or EMOTE: outside instances it needs a key press or click (EMOTE since 1.60.1). |
+| <a id="fl012-trial-addon-messages"></a>**FL012** trial-addon-messages | note | Trial accounts cannot send addon messages (1.60.1). Reported once per addon. |
 
 It follows the TOC Forever would pick, including `[AllowLoadGameType ...]` per file and the `<Script>`/`<Include>` files of XML, so code for other clients is not reported. `--all-files` checks every `.lua` file instead.
 

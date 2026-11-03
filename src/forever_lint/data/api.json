@@ -31232,7 +31232,7 @@
     "C_ChatInfo.GetRegisteredAddonMessagePrefixes"
    ],
    "in": [
-    "deprecated"
+    "notes"
    ]
   },
   "GetRewardArenaPoints": {
@@ -35842,7 +35842,7 @@
     "C_ChatInfo.IsAddonMessagePrefixRegistered"
    ],
    "in": [
-    "deprecated"
+    "notes"
    ]
   },
   "IsAddonVersionCheckEnabled": {
@@ -47186,7 +47186,7 @@
     "C_ChatInfo.RegisterAddonMessagePrefix"
    ],
    "in": [
-    "deprecated"
+    "notes"
    ]
   },
   "RegisterNewFrameLock": {
@@ -48272,7 +48272,7 @@
     "C_ChatInfo.SendAddonMessage"
    ],
    "in": [
-    "deprecated"
+    "notes"
    ]
   },
   "SendLFMQuery": {
@@ -54965,6 +54965,14 @@
   "removefromtable": {
    "in": [
     "history"
+   ]
+  },
+  "require": {
+   "use": [
+    "import"
+   ],
+   "in": [
+    "notes"
    ]
   },
   "ripairs": {

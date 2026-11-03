@@ -31,6 +31,8 @@ forever-lint ruta/a/MiAddon    # un addon, un repo con varios, o la carpeta AddO
 | **FL008** | error | No hay un TOC que Forever cargue (busca `_Camelot`, `_Forever`, `_Mainline` y después el `.toc` sin sufijo). |
 | **FL009** | warning | El `## Interface:` del TOC no incluye 16001, así que el addon aparece como desactualizado. |
 | **FL010** | nota | El TOC excluye a Forever con `AllowLoadGameType`/`ExcludeLoadGameType`. Está bien si es a propósito. |
+| **FL011** | nota | `SendChatMessage` con SAY, YELL o EMOTE: fuera de instancias necesita que el jugador apriete algo (EMOTE desde 1.60.1). |
+| **FL012** | nota | Las cuentas de prueba no pueden mandar mensajes de addon (1.60.1). Sale una vez por addon. |
 
 Revisa solo los archivos que carga el TOC que elige Forever (incluyendo `[AllowLoadGameType]` por archivo y los `<Script>`/`<Include>` de los XML). Así no reporta código de otros clientes.
 
