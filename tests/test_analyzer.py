@@ -225,3 +225,29 @@ def test_beta_event_quirks_are_notes(db):
     f = by_rule(lint(db, src), "FL013")
     assert [x.name for x in f] == ["PLAYER_DEAD", "MERCHANT_CLOSED", "ZONE_CHANGED_NEW_AREA"]
     assert all(x.severity == "note" and "not confirmed" in x.message for x in f)
+
+
+def test_events_registered_from_a_table_are_checked(db):
+    src = (
+        "local handlers = {\n"
+        "  PLAYER_DEAD = function() end,\n"
+        "  COMBAT_LOG_EVENT_UNFILTERED = function() end,\n"
+        "  MY_CONSTANT_THING = 1,\n"
+        "}\n"
+        "local skip = { COMBAT_LOG_EVENT_UNFILTERED = true }\n"
+        'handlers["MERCHANT_CLOSED"] = function() end\n'
+        "for event in pairs(handlers) do f:RegisterEvent(event) end"
+    )
+    found = lint(db, src)
+    assert [(x.rule, x.name) for x in found if x.rule in ("FL006", "FL013")] == [
+        ("FL013", "PLAYER_DEAD"),
+        ("FL006", "COMBAT_LOG_EVENT_UNFILTERED"),
+        ("FL013", "MERCHANT_CLOSED"),
+    ]
+    assert all("registered from a table" in x.message for x in found if x.rule in ("FL006", "FL013"))
+
+
+def test_table_keys_alone_are_not_events(db):
+    # no RegisterEvent from a variable: a table that happens to use an event name is not a registration
+    src = "local t = { PLAYER_DEAD = 1 }\nf:RegisterEvent('PLAYER_LOGIN')"
+    assert by_rule(lint(db, src), "FL013") == []

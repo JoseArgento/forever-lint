@@ -79,6 +79,6 @@ Cada semana el índice se compara con el anterior, y los addons que mejoraron (d
 - Es análisis léxico: no sabe qué rama de un `if esClassic then ... else ... end` corre en Forever.
 - "Probably replaced by" es un reemplazo encontrado por nombre. Revisá argumentos y retornos (muchas `C_` devuelven una tabla).
 - Todavía no revisa métodos de widgets ni constantes globales.
-- Los eventos los lee de textos fijos (`RegisterEvent("PLAYER_DEAD")`). Si un addon los registra desde una variable (`for event in pairs(handlers) do frame:RegisterEvent(event) end`), no los revisa para FL005, FL006 ni FL013.
+- Los eventos los lee de textos fijos (`RegisterEvent("PLAYER_DEAD")`) y, si un archivo los registra desde una variable (`for event in pairs(handlers) do frame:RegisterEvent(event) end`), de las claves de sus tablas de manejadores (`PLAYER_DEAD = function`). Los que se arman al correr (`"UNIT_" .. tipo`) no los sigue.
 
 Sin relación con Blizzard Entertainment. World of Warcraft es marca registrada de Blizzard Entertainment, Inc. Licencia MIT.

@@ -684,9 +684,81 @@ def _chain_start(toks: list[Token], k: int) -> int:
     return j
 
 
+# Events registered from a table: `for event in pairs(handlers) do frame:RegisterEvent(event) end` with
+# `handlers = { PLAYER_DEAD = function ... end }` or `handlers["PLAYER_DEAD"] = ...`. When a file registers events
+# from a variable, the keys of its tables that are event names are checked like string literals.
+_KEY_EVENT = re.compile(r"[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+")
+
+
+def _table_event_keys(toks: list[Token]):
+    """Event names used as keys of handler tables: the value has to be a function, so lists of events an addon
+    leaves out (`restricted = { COMBAT_LOG_EVENT_UNFILTERED = true }`) are not taken as registrations."""
+    n = len(toks)
+
+    def handler(i: int) -> bool:  # toks[i] is the "=": is a function its value?
+        return i + 1 < n and toks[i + 1].is_kw("function")
+
+    for k, t in enumerate(toks):
+        if not (t.kind in (NAME, STRING) and _KEY_EVENT.fullmatch(t.value)):
+            continue
+        # { NAME = function / , NAME = function  (a field of a table constructor)
+        if t.kind == NAME and k >= 1 and toks[k - 1].is_op("{", ",", ";") and k + 1 < n and toks[k + 1].is_op("=") and handler(k + 1):
+            yield t, t.value
+        # x.NAME = function
+        elif (
+            t.kind == NAME
+            and k >= 2
+            and toks[k - 1].is_op(".")
+            and toks[k - 2].kind == NAME
+            and k + 1 < n
+            and toks[k + 1].is_op("=")
+            and handler(k + 1)
+        ):
+            yield t, t.value
+        # ["NAME"] = function
+        elif (
+            t.kind == STRING
+            and k >= 1
+            and toks[k - 1].is_op("[")
+            and k + 2 < n
+            and toks[k + 1].is_op("]")
+            and toks[k + 2].is_op("=")
+            and handler(k + 2)
+        ):
+            yield t, t.value
+
+
+def _event_findings(
+    s: FileScan, db: ApiDb, out: list[Finding], arg: Token, ev: str, registering: bool, method: str, via_table: bool = False
+) -> None:
+    known = ev in db.events or ev in db.events_removed or ev in db.events_restricted or ev in BETA_EVENT_QUIRKS
+    if not known:
+        return
+    if via_table:
+        before = len(out)
+    if ev in db.events_removed and ev not in db.events:
+        sev = ERROR if registering else WARNING
+        out.append(Finding("FL005", sev, s.path, arg.line, arg.col, f"Event `{ev}` does not exist in Forever; registering it fails.", ev))
+    elif ev in BETA_EVENT_QUIRKS and registering:
+        out.append(Finding("FL013", NOTE, s.path, arg.line, arg.col, f"`{ev}` in Forever {BETA_EVENT_QUIRKS[ev]} ({BETA_SOURCE}).", ev))
+    elif ev in db.events_restricted and registering:
+        reasons = db.events_restricted[ev]
+        if "HasRestrictions" in reasons and ev.startswith("COMBAT_LOG"):
+            why = "the combat log is restricted for addons in Forever and `CombatLogGetCurrentEventInfo` is not available"
+        elif "SecretPayloads" in reasons:
+            why = "its payload arrives as secret values"
+        else:
+            why = "it has restrictions for addons"
+        out.append(Finding("FL006", WARNING, s.path, arg.line, arg.col, f"Event `{ev}`: {why}.", ev, extra={"reasons": reasons}))
+    if via_table:
+        for f in out[before:]:
+            f.message += " (registered from a table of handlers)"
+
+
 def _string_rules(s: FileScan, db: ApiDb, out: list[Finding]) -> None:
     toks = s.tokens
     n = len(toks)
+    dynamic = False
     for k, t in enumerate(toks):
         if t.kind != NAME:
             continue
@@ -696,29 +768,9 @@ def _string_rules(s: FileScan, db: ApiDb, out: list[Finding]) -> None:
             if arg.kind != STRING and k + 4 < n and toks[k + 3].is_op(","):
                 arg = toks[k + 4]
             if arg.kind == STRING and re.fullmatch(r"[A-Z][A-Z0-9_]+", arg.value):
-                ev = arg.value
-                if ev in db.events_removed and ev not in db.events:
-                    sev = ERROR if t.value in EVENT_REGISTER else WARNING
-                    out.append(
-                        Finding(
-                            "FL005", sev, s.path, arg.line, arg.col, f"Event `{ev}` does not exist in Forever; registering it fails.", ev
-                        )
-                    )
-                elif ev in BETA_EVENT_QUIRKS and t.value in EVENT_REGISTER:
-                    out.append(
-                        Finding("FL013", NOTE, s.path, arg.line, arg.col, f"`{ev}` in Forever {BETA_EVENT_QUIRKS[ev]} ({BETA_SOURCE}).", ev)
-                    )
-                elif ev in db.events_restricted and t.value in EVENT_REGISTER:
-                    reasons = db.events_restricted[ev]
-                    if "HasRestrictions" in reasons and ev.startswith("COMBAT_LOG"):
-                        why = "the combat log is restricted for addons in Forever and `CombatLogGetCurrentEventInfo` is not available"
-                    elif "SecretPayloads" in reasons:
-                        why = "its payload arrives as secret values"
-                    else:
-                        why = "it has restrictions for addons"
-                    out.append(
-                        Finding("FL006", WARNING, s.path, arg.line, arg.col, f"Event `{ev}`: {why}.", ev, extra={"reasons": reasons})
-                    )
+                _event_findings(s, db, out, arg, arg.value, t.value in EVENT_REGISTER, t.value)
+            elif arg.kind == NAME and t.value in EVENT_REGISTER:
+                dynamic = True
         # SendChatMessage(msg, "SAY"|"YELL"|"EMOTE") needs a hardware event outside instances (EMOTE since 1.60.1)
         if t.value == "SendChatMessage" and k + 1 < n and toks[k + 1].is_op("("):
             close = _closing(toks, k + 1)
@@ -825,3 +877,6 @@ def _string_rules(s: FileScan, db: ApiDb, out: list[Finding]) -> None:
                             extra={"evaluates": result},
                         )
                     )
+    if dynamic:
+        for tok, ev in _table_event_keys(toks):
+            _event_findings(s, db, out, tok, ev, True, "RegisterEvent", via_table=True)
