@@ -143,6 +143,7 @@ Only API names and flags are shipped. No Blizzard code is included.
 - It is a lexical analysis, not an interpreter. It cannot tell which side of `if isClassic then ... else ... end` runs in Forever, so code in a branch for another client is still reported. Use the guard patterns above, an inline `ignore`, or the TOC's `[AllowLoadGameType]` to keep that code out of Forever.
 - "Probably replaced by" means the replacement was matched by name (`GetAddOnMetadata` → `C_AddOns.GetAddOnMetadata`). Check its arguments and return values; many `C_` functions return a table.
 - Widget methods (`frame:SetBackdrop`) and global constants are not checked yet.
+- Events are read from string literals (`RegisterEvent("PLAYER_DEAD")`). An addon that registers them from a variable (`for event in pairs(handlers) do frame:RegisterEvent(event) end`) is not checked for FL005, FL006 or FL013.
 - Secret values are flagged when the value is used directly, or through a local in the same file, in arithmetic or a comparison. Cached globals (`local UnitHealth = UnitHealth`) count. A check on the same line (`issecretvalue(hp) or`, `E:NotSecretValue(hp) and`) counts as a guard; a check on an earlier line does not. Values passed through tables or other functions are not followed.
 
 ## Tested on
