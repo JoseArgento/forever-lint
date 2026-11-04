@@ -22,15 +22,39 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Last week's index and feed (from the published site; nothing the first time)
+        run: |
+          mkdir -p prev
+          curl -sfL "${SITE}data.json" -o prev/data.json || rm -f prev/data.json
+          curl -sfL "${SITE}feed.xml" -o prev/feed.xml || rm -f prev/feed.xml
+        env:
+          SITE: https://joseargento.github.io/forever-lint/
       - name: Check the addons
         run: |
           python index/build_index.py --cache .index-cache --out site
           python index/build_api.py --out site
+      - name: The "now works on Forever" feed
+        run: python index/build_feed.py --new site/data.json --old prev/data.json --old-feed prev/feed.xml --out site/feed.xml --text feed-new.txt
+      # Optional: set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID as repository secrets to post the news to a channel.
+      - name: Post the news to Telegram
+        if: ${{ env.TELEGRAM_BOT_TOKEN != '' && env.TELEGRAM_CHAT_ID != '' && github.event_name == 'schedule' }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          while IFS= read -r line; do
+            [ -n "$line" ] && curl -sf -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=${line}" >/dev/null
+            sleep 1
+          done < feed-new.txt
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

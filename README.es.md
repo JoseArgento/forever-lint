@@ -70,6 +70,10 @@ La misma web tiene una **tabla de API movida** (`api.html`, también como `api.j
 
 Solo se publican nombres y flags; nada de código de Blizzard.
 
+## Feed "ya anda en Forever"
+
+Cada semana el índice se compara con el anterior, y los addons que mejoraron (de "no carga" a "carga", o de errores a limpio) salen en un feed RSS, `feed.xml`, en el mismo sitio. Para mandarlos también a un canal de Telegram: creá un bot con @BotFather, sumalo al canal y cargá `TELEGRAM_BOT_TOKEN` y `TELEGRAM_CHAT_ID` como secretos del repo. Sin ellos ese paso no corre.
+
 ## Límites
 
 - Es análisis léxico: no sabe qué rama de un `if esClassic then ... else ... end` corre en Forever.
