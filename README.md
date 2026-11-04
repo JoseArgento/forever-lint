@@ -121,7 +121,10 @@ Without the action: `pip install forever-lint && forever-lint . --format sarif -
 
 ```bash
 python index/build_index.py --cache .index-cache --out site   # then open site/index.html
+python index/build_api.py --out site                          # site/api.html: every Classic API that moved
 ```
+
+The same site has an **API migration table** (`api.html`, also as `api.json`): every function that existed in a Classic client and is missing, moved or restricted in Forever, with its replacement, plus the deprecation fallbacks, secret-value functions and events. An addon author asked for exactly this list in the Forever beta feedback thread.
 
 ## Where the data comes from
 

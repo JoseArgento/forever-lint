@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Forever API Moves</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Every Classic API that is missing, moved or restricted in WoW Forever, with its replacement. Generated from the client by forever-lint.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a reference ledger. Tabs pick the list, one search box filters it, rows read old name → new name. */
+:root {
+  --bg: #f3f4f1; --panel: #ffffff; --ink: #1a1f24; --muted: #5d6670; --line: #d8dcd6; --accent: #2f5d8a;
+  --ok: #2c7a4b; --warn: #a36a00; --err: #b23a2e; --ui: #5b5f66; --chip: #e9ebe6;
+  --display: "Archivo Narrow", "Arial Narrow", sans-serif; --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #14171a; --panel: #1b1f23; --ink: #e5e8eb; --muted: #9aa3ab; --line: #2d3339; --accent: #7fb0de; --ok: #6cc48f; --warn: #e2b04a; --err: #f07a6e; --ui: #a4a9b0; --chip: #252a30; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #14171a; --panel: #1b1f23; --ink: #e5e8eb; --muted: #9aa3ab; --line: #2d3339; --accent: #7fb0de; --ok: #6cc48f; --warn: #e2b04a; --err: #f07a6e; --ui: #a4a9b0; --chip: #252a30; color-scheme: dark; }
+* { box-sizing: border-box; }
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 var(--body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 48px; }
+.wrap { max-width: 1040px; margin: 0 auto; display: grid; gap: 18px; }
+header { display: grid; gap: 8px; }
+.top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+h1 { font: 700 clamp(30px, 6vw, 46px)/1 var(--display); margin: 0; letter-spacing: 0.01em; text-wrap: balance; }
+.sub { margin: 0; color: var(--muted); max-width: 72ch; }
+.build { font: 500 13px var(--mono); color: var(--muted); margin: 0; }
+.lang { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.lang button { font: 500 13px var(--mono); padding: 5px 11px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.lang button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--line); }
+.tabs button { border: 0; border-bottom: 3px solid transparent; background: none; color: var(--muted); font: 600 15px var(--body); padding: 8px 10px; cursor: pointer; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-color: var(--accent); }
+.tabs b { font: 500 12px var(--mono); margin-left: 6px; color: var(--muted); }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.search { flex: 1 1 240px; min-width: 0; font: 15px var(--mono); padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); }
+.controls label { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; color: var(--muted); }
+.count { font: 500 13px var(--mono); color: var(--muted); }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: left; font: 700 13px var(--display); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); padding: 9px 12px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--panel); }
+td { padding: 7px 12px; border-top: 1px solid var(--line); vertical-align: top; }
+tr:first-child td { border-top: 0; }
+td.n, td.to { font: 13px var(--mono); overflow-wrap: anywhere; }
+td.to span.guess { color: var(--muted); }
+.k { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 6px; border-radius: 5px; color: var(--panel); white-space: nowrap; }
+.k-removed { background: var(--err); } .k-ui { background: var(--ui); } .k-restricted { background: var(--warn); } .k-fallback { background: var(--warn); } .k-secret { background: var(--accent); } .k-event { background: var(--err); }
+.flags { font: 12px var(--mono); color: var(--muted); white-space: nowrap; }
+.note { color: var(--muted); font-size: 13px; }
+.more { padding: 10px 12px; color: var(--muted); font-size: 14px; }
+.more button { font: 600 14px var(--body); border: 1px solid var(--line); background: var(--chip); color: var(--ink); border-radius: 8px; padding: 5px 12px; cursor: pointer; margin-left: 8px; }
+.foot { color: var(--muted); font-size: 14px; display: grid; gap: 6px; }
+a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="top">
+      <h1 data-t="title"></h1>
+      <div class="lang" role="group" aria-label="Language / Idioma">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="es" aria-pressed="false">ES</button>
+      </div>
+    </div>
+    <p class="sub" data-t="sub"></p>
+    <p class="build" id="build"></p>
+  </header>
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+  <div class="controls">
+    <input class="search" id="q" type="search" autocomplete="off" spellcheck="false">
+    <label id="eraWrap"><input type="checkbox" id="era"> <span data-t="eraOnly"></span></label>
+    <label id="useWrap"><input type="checkbox" id="use"> <span data-t="withUse"></span></label>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="tablewrap"><table><thead id="head"></thead><tbody id="body"></tbody></table><div class="more" id="more" hidden></div></div>
+  <div class="foot">
+    <p data-t="how"></p>
+    <p><a href="index.html" data-t="toIndex"></a> · <a href="api.json" data-t="toJson"></a> · <a href="https://github.com/JoseArgento/forever-lint">github.com/JoseArgento/forever-lint</a></p>
+  </div>
+</div>
+<script>/*__DATA__*/</script>
+<script>
+(function () {
+  "use strict";
+  const D = API_DATA;
+  const T = {
+    en: {
+      title: "Forever API moves",
+      sub: "Every function that existed in a Classic client and is missing, moved or restricted in WoW Forever, with its replacement when there is one. For addon authors porting to Forever.",
+      build: () => `WoW Forever ${D.target.version} (${D.target.build}) · interface ${D.target.interface} · WOW_PROJECT_ID ${D.target.project.id} (${D.target.project.name}) · forever-lint ${D.linter} · data ${D.generated}`,
+      tabs: { moved: "Missing or moved", fallbacks: "Deprecation fallbacks", secret: "Secret values", events: "Events" },
+      search: "Search a function or event, e.g. GetSpellInfo",
+      eraOnly: "Only in Classic Era", withUse: "Has a replacement",
+      shown: (n, t) => `${n} of ${t}`,
+      more: (n) => `${n} more rows.`, showAll: "Show all",
+      cols: {
+        moved: ["Classic name", "In Forever", "Use instead", "Seen in"],
+        fallbacks: ["Name", "In Forever", "Use instead", "Fallback file"],
+        secret: ["Function", "Returns secret values", "Numeric"],
+        events: ["Event", "In Forever", "Why"],
+      },
+      kind: { removed: "missing", ui: "UI function gone", restricted: "not for addons", fallback: "fallback only", secret: "secret", event: "missing", restrictedEvent: "restricted" },
+      guess: "match by name, check the arguments",
+      returns: (t) => `returns a ${t} table`,
+      points: (t) => `points to ${t}`,
+      always: "always", when: "when ", yes: "yes", no: "",
+      seen: { era: "Era", anniversary: "Anniversary", classic: "Classic" },
+      why: { HasRestrictions: "restricted for addons", SecretPayloads: "payload is secret" },
+      how: "Generated from the Forever client's own API dump (Ketho/BlizzardInterfaceResources) and Blizzard's UI source (Gethe/wow-ui-source). \"Fallback only\" functions work while the loadDeprecationFallbacks CVar is on, and Blizzard says they will be removed. \"Match by name\" replacements were found by name only.",
+      toIndex: "Compatibility index of popular addons", toJson: "This table as JSON",
+    },
+    es: {
+      title: "API movida en Forever",
+      sub: "Todas las funciones que existían en algún cliente Classic y en WoW Forever no están, se movieron o están restringidas, con su reemplazo cuando lo hay. Para autores de addons que portan a Forever.",
+      build: () => `WoW Forever ${D.target.version} (${D.target.build}) · interfaz ${D.target.interface} · WOW_PROJECT_ID ${D.target.project.id} (${D.target.project.name}) · forever-lint ${D.linter} · datos ${D.generated}`,
+      tabs: { moved: "No están o se movieron", fallbacks: "Alias de compatibilidad", secret: "Valores secretos", events: "Eventos" },
+      search: "Buscá una función o evento, por ejemplo GetSpellInfo",
+      eraOnly: "Solo de Classic Era", withUse: "Con reemplazo",
+      shown: (n, t) => `${n} de ${t}`,
+      more: (n) => `${n} filas más.`, showAll: "Mostrar todas",
+      cols: {
+        moved: ["Nombre en Classic", "En Forever", "Usar en cambio", "Existía en"],
+        fallbacks: ["Nombre", "En Forever", "Usar en cambio", "Archivo del alias"],
+        secret: ["Función", "Devuelve valores secretos", "Numérico"],
+        events: ["Evento", "En Forever", "Por qué"],
+      },
+      kind: { removed: "no está", ui: "función de UI que no está", restricted: "no para addons", fallback: "solo alias", secret: "secreto", event: "no está", restrictedEvent: "restringido" },
+      guess: "encontrado por nombre, revisá los argumentos",
+      returns: (t) => `devuelve una tabla ${t}`,
+      points: (t) => `apunta a ${t}`,
+      always: "siempre", when: "cuando ", yes: "sí", no: "",
+      seen: { era: "Era", anniversary: "Anniversary", classic: "Classic" },
+      why: { HasRestrictions: "restringido para addons", SecretPayloads: "datos secretos" },
+      how: "Generado desde el dump de la API del propio cliente de Forever (Ketho/BlizzardInterfaceResources) y el código de la UI de Blizzard (Gethe/wow-ui-source). Los \"solo alias\" funcionan mientras el CVar loadDeprecationFallbacks está prendido, y Blizzard avisa que los va a sacar. Los reemplazos \"encontrados por nombre\" salen solo de coincidir el nombre.",
+      toIndex: "Índice de compatibilidad de addons populares", toJson: "Esta tabla en JSON",
+    },
+  };
+  let lang = (navigator.language || "en").toLowerCase().startsWith("es") ? "es" : "en";
+  try { const s = localStorage.getItem("forever-api-lang"); if (s === "en" || s === "es") lang = s; } catch (e) {}
+  let tab = "moved", limit = 400;
+  const $ = (s) => document.querySelector(s);
+  const el = (tag, attrs, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) { if (k === "class") n.className = v; else if (k === "text") n.textContent = v; else n.setAttribute(k, v); }
+    for (const k of kids) if (k != null) n.append(k);
+    return n;
+  };
+  const lists = { moved: D.moved, fallbacks: D.fallbacks, secret: D.secret, events: D.events };
+  const hay = (r) => [r.n, ...(r.use || []), r.to || "", r.file || ""].join(" ").toLowerCase();
+  for (const l of Object.values(lists)) for (const r of l) r._h = hay(r);
+  function rows() {
+    const q = $("#q").value.trim().toLowerCase();
+    let l = lists[tab];
+    if (tab === "moved" && $("#era").checked) l = l.filter((r) => r.in.includes("era"));
+    if ((tab === "moved" || tab === "fallbacks") && $("#use").checked) l = l.filter((r) => (r.use && r.use.length) || r.to);
+    if (q) {
+      const exact = l.filter((r) => r.n.toLowerCase() === q);
+      const rest = l.filter((r) => r.n.toLowerCase() !== q && r._h.includes(q));
+      l = exact.concat(rest);
+    }
+    return l;
+  }
+  function cell(r) {
+    const L = T[lang];
+    if (tab === "moved") {
+      const to = el("td", { class: "to" });
+      if (r.use) {
+        r.use.forEach((u, i) => { if (i) to.append(", "); to.append(u); });
+        if (r.guess) to.append(el("br"), el("span", { class: "guess", text: L.guess }));
+      }
+      if (r.ret) for (const [u, t] of Object.entries(r.ret)) to.append(el("br"), el("span", { class: "note", text: `${u}: ${L.returns(t)}` }));
+      if (r.to) to.append(el("span", { class: "note", text: L.points(r.to) }));
+      return [el("td", { class: "n", text: r.n }), el("td", {}, el("span", { class: `k k-${r.k}`, text: L.kind[r.k] })), to, el("td", { class: "flags", text: r.in.map((s) => L.seen[s]).join(" · ") })];
+    }
+    if (tab === "fallbacks") {
+      return [el("td", { class: "n", text: r.n }), el("td", {}, el("span", { class: "k k-fallback", text: L.kind.fallback })),
+        el("td", { class: "to" }, r.to || "", r.ret ? el("span", { class: "note", text: " (" + L.returns(r.ret) + ")" }) : null), el("td", { class: "flags", text: r.file })];
+    }
+    if (tab === "secret") {
+      return [el("td", { class: "n", text: r.n }), el("td", {}, el("span", { class: "k k-secret", text: L.kind.secret }), " ", r.always ? L.always : L.when + r.when.join(", ")), el("td", { class: "flags", text: r.num ? L.yes : L.no })];
+    }
+    return [el("td", { class: "n", text: r.n }), el("td", {}, el("span", { class: r.k === "removed" ? "k k-event" : "k k-restricted", text: r.k === "removed" ? L.kind.event : L.kind.restrictedEvent })),
+      el("td", { class: "note", text: (r.why || []).map((w) => L.why[w] || w).join(", ") })];
+  }
+  function draw() {
+    const L = T[lang];
+    const all = rows();
+    const shown = all.slice(0, limit);
+    $("#head").replaceChildren(el("tr", {}, ...L.cols[tab].map((c) => el("th", { scope: "col", text: c }))));
+    $("#body").replaceChildren(...shown.map((r) => el("tr", {}, ...cell(r))));
+    $("#count").textContent = L.shown(all.length, lists[tab].length);
+    const more = $("#more");
+    more.hidden = all.length <= shown.length;
+    if (!more.hidden) {
+      const b = el("button", { type: "button", text: L.showAll });
+      b.addEventListener("click", () => { limit = Infinity; draw(); });
+      more.replaceChildren(L.more(all.length - shown.length), b);
+    }
+  }
+  function render() {
+    const L = T[lang];
+    document.documentElement.lang = lang;
+    document.querySelectorAll("[data-t]").forEach((n) => { n.textContent = L[n.dataset.t]; });
+    document.querySelectorAll(".lang button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+    $("#build").textContent = L.build();
+    $("#q").placeholder = L.search;
+    $("#q").setAttribute("aria-label", L.search);
+    $("#tabs").replaceChildren(...Object.keys(lists).map((k) => {
+      const b = el("button", { type: "button", role: "tab", "aria-selected": String(k === tab) }, L.tabs[k], el("b", { text: String(lists[k].length) }));
+      b.addEventListener("click", () => { tab = k; limit = 400; location.hash = k; render(); });
+      return b;
+    }));
+    $("#eraWrap").hidden = tab !== "moved";
+    $("#useWrap").hidden = !(tab === "moved" || tab === "fallbacks");
+    draw();
+  }
+  document.querySelectorAll(".lang button").forEach((b) => b.addEventListener("click", () => { lang = b.dataset.lang; try { localStorage.setItem("forever-api-lang", lang); } catch (e) {} render(); }));
+  $("#q").addEventListener("input", () => { limit = 400; draw(); });
+  $("#era").addEventListener("change", draw);
+  $("#use").addEventListener("change", draw);
+  const h = location.hash.slice(1);
+  if (lists[h]) tab = h;
+  render();
+})();
+</script>
+</body>
+</html>

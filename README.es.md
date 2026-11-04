@@ -59,6 +59,8 @@ Sube un SARIF a code scanning, así los hallazgos aparecen como anotaciones en e
 
 `index/` arma una web estática: corre forever-lint sobre addons populares con repo público en GitHub (`index/addons.json`) y la publica en GitHub Pages cada semana. Muestra archivo, línea y mensaje de cada hallazgo, nunca el código de los addons. Para sumar un addon, abrí un pull request con su repo en `index/addons.json`.
 
+La misma web tiene una **tabla de API movida** (`api.html`, también como `api.json`): cada función que existía en algún Classic y en Forever no está, se movió o está restringida, con su reemplazo, más los alias de compatibilidad, los valores secretos y los eventos.
+
 ## De dónde salen los datos
 
 `tools/build_db.py` arma `src/forever_lint/data/api.json`, y un workflow semanal lo regenera cuando Blizzard parchea Forever:

@@ -28,7 +28,9 @@ jobs:
         with:
           python-version: "3.12"
       - name: Check the addons
-        run: python index/build_index.py --cache .index-cache --out site
+        run: |
+          python index/build_index.py --cache .index-cache --out site
+          python index/build_api.py --out site
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

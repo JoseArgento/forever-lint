@@ -117,5 +117,20 @@ def test_toc_loading_a_file_from_a_sibling_folder(tmp_path):
 def test_export_luacheck():
     out, code = run("--export-luacheck")
     assert code == 0 and out.startswith("-- WoW Forever")
-    assert '\tC_Spell = { fields = {' in out and '"GetSpellInfo"' in out.split("C_Spell = ")[1].split("\n")[0]
+    assert "\tC_Spell = { fields = {" in out and '"GetSpellInfo"' in out.split("C_Spell = ")[1].split("\n")[0]
     assert '\t"GetSpellInfo",' not in out  # removed in Forever, so luacheck should flag it
+
+
+def test_api_migration_table(tmp_path):
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("build_api", Path(__file__).resolve().parents[1] / "index" / "build_api.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    data = mod.build(json.loads((Path(__file__).resolve().parents[1] / "src/forever_lint/data/api.json").read_text()))
+    rows = {r["n"]: r for r in data["moved"]}
+    assert rows["GetItemInfo"]["use"] == ["C_Item.GetItemInfo"] and "era" in rows["GetItemInfo"]["in"]
+    assert rows["CombatLogGetCurrentEventInfo"]["k"] == "restricted"
+    assert "C_Engraving.GetRuneCategories" in rows  # Season of Discovery API
+    assert all(r["in"] for r in data["moved"])  # only names some Classic client had
+    assert any(e["n"] == "COMBAT_LOG_EVENT_UNFILTERED" and e["k"] == "restricted" for e in data["events"])
