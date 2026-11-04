@@ -75,6 +75,12 @@ GetMouseFocus()
     assert [(x.line, x.name) for x in f] == [(12, "GetMouseFocus")]
 
 
+def test_local_table_then_function_on_the_next_line(db):
+    # Regression: "local t = {}" followed by "function t.x()" left t pending, so uses inside looked global.
+    src = "local GetItemInfo = {}\nfunction ns.f()\n  return GetItemInfo[1]\nend\n"
+    assert by_rule(lint(db, src), "FL001") == []
+
+
 def test_polyfill_in_another_file_suppresses(db):
     f = lint(db, "GetSpellInfo(1)", "GetSpellInfo = GetSpellInfo or function() end")
     assert by_rule(f, "FL001") == []

@@ -162,6 +162,8 @@ def scan(path: str, source: str) -> FileScan:
                 t.is_op(";")
                 or (t.kind == KEYWORD and t.value in STATEMENT_KW and t.value != "function")
                 or (t.kind == NAME and t.line > prev.line and _is_value_end(prev))
+                # "local t = {}" then "function t.x()" on the next line
+                or (t.is_kw("function") and t.line > prev.line and _is_value_end(prev))
             ):
                 flush_locals()
 
