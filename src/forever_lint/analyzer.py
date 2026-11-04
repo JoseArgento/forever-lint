@@ -127,6 +127,8 @@ def scan(path: str, source: str) -> FileScan:
     # (names, scope, block depth) declared by "local a, b = ..." and waiting for the statement to end
     pending_locals: list[tuple[list[str], _Scope, int]] = []
     brackets: list[str] = []  # "(", "[", "{"
+    # A function body starts with no open brackets, even inside a call: f(function() local a = 1 ... end)
+    fn_brackets: list[tuple[int, list[str]]] = []  # (block depth of the body, brackets outside it)
 
     def push(names: Iterable[str] = ()) -> None:
         nonlocal scope
@@ -225,6 +227,8 @@ def scan(path: str, source: str) -> FileScan:
                         j += 1
                     j += 1
                 push(params)
+                fn_brackets.append((len(blocks), brackets[:]))
+                brackets.clear()
                 i = j
                 continue
             if v == "for":
@@ -248,6 +252,8 @@ def scan(path: str, source: str) -> FileScan:
                 push()
             elif v in ("end", "until"):
                 flush_locals()
+                if v == "end" and fn_brackets and fn_brackets[-1][0] == len(blocks):
+                    brackets[:] = fn_brackets.pop()[1]
                 pop()
             elif v == "goto":
                 i += 2

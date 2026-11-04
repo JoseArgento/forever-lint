@@ -56,6 +56,25 @@ def test_block_scopes_end(db):
     assert [x.line for x in f] == [2]
 
 
+def test_locals_inside_a_function_passed_as_argument(db):
+    # Regression: the open "(" of the call kept "local x = ..." from becoming local inside the callback.
+    src = """
+C_Timer.After(1, function()
+  if true then
+    local GetItemInfo = C_Item.GetItemInfo
+    GetItemInfo(1)
+  end
+end)
+frame:SetScript("OnEvent", function(self, event)
+  local GetSpellInfo = C_Spell.GetSpellInfo
+  print(GetSpellInfo(1))
+end)
+GetMouseFocus()
+"""
+    f = by_rule(lint(db, src), "FL001")
+    assert [(x.line, x.name) for x in f] == [(12, "GetMouseFocus")]
+
+
 def test_polyfill_in_another_file_suppresses(db):
     f = lint(db, "GetSpellInfo(1)", "GetSpellInfo = GetSpellInfo or function() end")
     assert by_rule(f, "FL001") == []
