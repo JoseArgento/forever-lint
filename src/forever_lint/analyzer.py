@@ -57,6 +57,7 @@ class _Ref:
     end: int  # token index after the chain
     is_call: bool
     guarded: bool
+    alias: bool = False  # a use of "local X = X": name is the global it stands for
 
 
 @dataclass(slots=True)
@@ -71,11 +72,20 @@ class FileScan:
 
 
 class _Scope:
-    __slots__ = ("names", "parent")
+    __slots__ = ("names", "parent", "aliases")
 
     def __init__(self, parent: _Scope | None):
         self.names: set[str] = set()
         self.parent = parent
+        self.aliases: dict[str, str] = {}  # "local UnitHealth = UnitHealth" -> {"UnitHealth": "UnitHealth"}
+
+    def owner(self, name: str) -> _Scope | None:
+        s: _Scope | None = self
+        while s is not None:
+            if name in s.names:
+                return s
+            s = s.parent
+        return None
 
     def has(self, name: str) -> bool:
         s: _Scope | None = self
@@ -125,7 +135,7 @@ def scan(path: str, source: str) -> FileScan:
     blocks: list[_Scope] = []
     pending_loop: list[str] = []
     # (names, scope, block depth) declared by "local a, b = ..." and waiting for the statement to end
-    pending_locals: list[tuple[list[str], _Scope, int]] = []
+    pending_locals: list[tuple[list[str], _Scope, int, dict[str, str] | None]] = []
     brackets: list[str] = []  # "(", "[", "{"
     # A function body starts with no open brackets, even inside a call: f(function() local a = 1 ... end)
     fn_brackets: list[tuple[int, list[str]]] = []  # (block depth of the body, brackets outside it)
@@ -144,11 +154,16 @@ def scan(path: str, source: str) -> FileScan:
 
     def flush_locals(force: bool = False) -> None:
         keep = []
-        for names, sc, depth in pending_locals:
+        for names, sc, depth, alias in pending_locals:
             if force or depth == len(blocks):
                 sc.names.update(names)
+                for name in names:
+                    if alias and name in alias:
+                        sc.aliases[name] = alias[name]
+                    else:
+                        sc.aliases.pop(name, None)
             else:
-                keep.append((names, sc, depth))
+                keep.append((names, sc, depth, alias))
         pending_locals[:] = keep
 
     i = 0
@@ -196,7 +211,7 @@ def scan(path: str, source: str) -> FileScan:
                         continue
                     break
                 if j < n and toks[j].is_op("="):
-                    pending_locals.append((names, scope, len(blocks)))
+                    pending_locals.append((names, scope, len(blocks), _alias_of(toks, j + 1, names, scope)))
                 else:
                     scope.names.update(names)
                 i = j
@@ -276,10 +291,26 @@ def scan(path: str, source: str) -> FileScan:
         if brackets and brackets[-1] == "{" and nxt is not None and nxt.is_op("=") and prev is not None and prev.is_op("{", ",", ";"):
             i += 1
             continue
-        if scope.has(t.value):
+        owner = scope.owner(t.value)
+        if owner is not None:
             if nxt is not None and nxt.is_op("=") and not brackets:
                 reassigned.add(t.value)
-            i += 1
+                owner.aliases.pop(t.value, None)
+                i += 1
+                continue
+            alias = owner.aliases.get(t.value)
+            if alias is None:
+                i += 1
+                continue
+            j = i + 1
+            full = alias
+            if "." not in alias and j + 1 < n and toks[j].is_op(".") and toks[j + 1].kind == NAME:
+                full = f"{alias}.{toks[j + 1].value}"
+                j += 2
+            after = toks[j] if j < n else None
+            is_call = after is not None and (after.is_op("(", "{", ":") or after.kind == STRING)
+            refs.append(_Ref(full, t, i, j, is_call, False, True))
+            i = j
             continue
 
         # Global reference. Build "Base.Member" for namespace tables.
@@ -327,6 +358,30 @@ def scan(path: str, source: str) -> FileScan:
             r.guarded = True
     file_rules, line_rules = _suppressions(source)
     return FileScan(path, refs, defines, guarded, toks, file_rules, line_rules)
+
+
+def _alias_of(toks: list[Token], k: int, names: list[str], scope: _Scope) -> dict[str, str] | None:
+    """``local load = loadstring`` / ``local A, B = A, B``: the globals (``A`` or ``A.B``) the locals stand for."""
+    n = len(toks)
+    out: dict[str, str] = {}
+    e = k
+    for idx, name in enumerate(names):
+        if e >= n or toks[e].kind != NAME or scope.has(toks[e].value):
+            return None
+        chain = [toks[e].value]
+        e += 1
+        while e + 1 < n and toks[e].is_op(".") and toks[e + 1].kind == NAME:
+            chain.append(toks[e + 1].value)
+            e += 2
+        if len(chain) > 2:
+            return None
+        out[name] = ".".join(chain)
+        if idx < len(names) - 1:
+            if e >= n or not toks[e].is_op(","):
+                return None
+            e += 1
+    end = e >= n or toks[e].is_op(";") or toks[e].line > toks[e - 1].line or (toks[e].kind == KEYWORD and toks[e].value in STATEMENT_KW)
+    return out if end else None
 
 
 def _looks_like_assignment(toks: list[Token], j: int) -> bool:
@@ -417,6 +472,8 @@ def _api_rules(s: FileScan, db: ApiDb, addon_defines: set[str], out: list[Findin
             continue
         if r.name in addon_defines or base in addon_defines or (r.name in db.available and r.name not in db.deprecated):
             continue
+        if r.alias:
+            continue  # "local X = X": reported once, where the global is read
         guarded = r.guarded or r.name in s.guarded_names or base in s.guarded_names
 
         name, entry = r.name, db.removed.get(r.name)
@@ -575,8 +632,27 @@ def _secret_rule(s: FileScan, db: ApiDb, addon_defines: set[str], out: list[Find
         if (after is not None and after.kind == OP and after.value in ARITH) or (
             before is not None and before.kind == OP and before.value in ARITH
         ):
+            if _secret_checked(toks, k, t.value):
+                continue
             fn = secret_locals[t.value]
             out.append(_secret_finding(s.path, t, fn, db.secret[fn], via=t.value))
+
+
+def _secret_checked(toks: list[Token], k: int, name: str) -> bool:
+    """``issecretvalue(hp)``, ``E:NotSecretValue(hp)``, ``self:IsSecret(hp)`` earlier on the same line guards ``hp``."""
+    line = toks[k].line
+    j = k - 1
+    while j >= 2 and toks[j].line == line:
+        if (
+            toks[j].kind == NAME
+            and toks[j].value == name
+            and toks[j - 1].is_op("(")
+            and toks[j - 2].kind == NAME
+            and "secret" in toks[j - 2].value.lower()
+        ):
+            return True
+        j -= 1
+    return False
 
 
 def _secret_finding(path: str, tok: Token, fn: str, info: dict, via: str | None = None) -> Finding:

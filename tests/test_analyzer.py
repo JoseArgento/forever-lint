@@ -81,6 +81,18 @@ def test_local_table_then_function_on_the_next_line(db):
     assert by_rule(lint(db, src), "FL001") == []
 
 
+def test_secret_value_through_a_cached_local(db):
+    # BigWigs: "local UnitHealth, UnitHealthMax = UnitHealth, UnitHealthMax" then compares the result.
+    src = "local UnitHealth, UnitHealthMax = UnitHealth, UnitHealthMax\nlocal hp = UnitHealth(unit)\nif hp > 0 then end\n"
+    f = by_rule(lint(db, src), "FL003")
+    assert [(x.line, x.name) for x in f] == [(3, "UnitHealth")]
+
+
+def test_secret_check_on_the_same_line_is_a_guard(db):
+    src = "local hp = UnitHealth(unit)\nif E:NotSecretValue(hp) and hp > 0 then end\nif issecretvalue(hp) or hp > 1 then end\nif hp > 2 then end\n"
+    assert [x.line for x in by_rule(lint(db, src), "FL003")] == [4]
+
+
 def test_polyfill_in_another_file_suppresses(db):
     f = lint(db, "GetSpellInfo(1)", "GetSpellInfo = GetSpellInfo or function() end")
     assert by_rule(f, "FL001") == []
