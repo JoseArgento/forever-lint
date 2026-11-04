@@ -1,0 +1,8 @@
+- id: forever-lint
+  name: forever-lint
+  description: Check WoW addons for problems on WoW Forever
+  entry: forever-lint
+  language: python
+  pass_filenames: false
+  args: ["."]
+  files: \.(lua|toc|xml)$

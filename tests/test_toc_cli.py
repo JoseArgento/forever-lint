@@ -112,3 +112,10 @@ def test_toc_loading_a_file_from_a_sibling_folder(tmp_path):
     (tmp_path / "B" / "shared.lua").write_text("GetItemInfo(1)")
     out, _ = run(tmp_path / "A", "--format", "json")
     assert [f["name"] for f in json.loads(out)["findings"]] == ["GetItemInfo"]
+
+
+def test_export_luacheck():
+    out, code = run("--export-luacheck")
+    assert code == 0 and out.startswith("-- WoW Forever")
+    assert '\tC_Spell = { fields = {' in out and '"GetSpellInfo"' in out.split("C_Spell = ")[1].split("\n")[0]
+    assert '\t"GetSpellInfo",' not in out  # removed in Forever, so luacheck should flag it

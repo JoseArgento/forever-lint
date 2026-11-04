@@ -69,6 +69,20 @@ OldThing()
 
 Or skip whole rules with `--ignore FL002,FL004`.
 
+## With luacheck or pre-commit
+
+`forever-lint --export-luacheck > .luacheckrc.forever` prints a `read_globals` block with every function Forever has (deprecation fallbacks left out), to paste into an existing `.luacheckrc`.
+
+For [pre-commit](https://pre-commit.com):
+
+```yaml
+repos:
+  - repo: https://github.com/JoseArgento/forever-lint
+    rev: v0.1.0
+    hooks:
+      - id: forever-lint
+```
+
 ## Options
 
 ```
