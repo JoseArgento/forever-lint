@@ -32,6 +32,16 @@ GUARD_AFTER = {"and", "or", "then", "do"}
 EVENT_METHODS = {"RegisterEvent", "RegisterUnitEvent", "RegisterEventCallback", "UnregisterEvent", "IsEventRegistered", "RegisterMessage"}
 ADDON_MESSAGE_SENDERS = {"C_ChatInfo.SendAddonMessage", "C_ChatInfo.SendAddonMessageLogged", "SendAddonMessage"}
 EVENT_REGISTER = {"RegisterEvent", "RegisterUnitEvent", "RegisterEventCallback"}
+# Reported by an addon author in Forever's beta feedback thread (Arghness, 18/10/2026, client 1.60.1), not
+# confirmed by Blizzard: notes, so authors can guard against them.
+BETA_EVENT_QUIRKS = {
+    "PLAYER_DEAD": "fires twice for one death; ignore a second one that comes within a few seconds",
+    "MERCHANT_CLOSED": "fires twice when you walk away from the vendor",
+    "AUCTION_HOUSE_CLOSED": "fires twice when you walk away from the auction house",
+    "ZONE_CHANGED_NEW_AREA": "right after a hearthstone, a flight or a portal the zone text can still be the old zone, or empty; "
+    "read it a moment later",
+}
+BETA_SOURCE = "reported in the beta feedback thread on 18/10, not confirmed by Blizzard"
 
 _SUPPRESS_RE = re.compile(r"forever-lint:\s*(ignore-file|ignore-next-line|ignore)(?:\s*=?\s*\[?([A-Z0-9,\s]+)\]?)?", re.I)
 
@@ -694,6 +704,10 @@ def _string_rules(s: FileScan, db: ApiDb, out: list[Finding]) -> None:
                             "FL005", sev, s.path, arg.line, arg.col, f"Event `{ev}` does not exist in Forever; registering it fails.", ev
                         )
                     )
+                elif ev in BETA_EVENT_QUIRKS and t.value in EVENT_REGISTER:
+                    out.append(
+                        Finding("FL013", NOTE, s.path, arg.line, arg.col, f"`{ev}` in Forever {BETA_EVENT_QUIRKS[ev]} ({BETA_SOURCE}).", ev)
+                    )
                 elif ev in db.events_restricted and t.value in EVENT_REGISTER:
                     reasons = db.events_restricted[ev]
                     if "HasRestrictions" in reasons and ev.startswith("COMBAT_LOG"):
@@ -728,7 +742,8 @@ def _string_rules(s: FileScan, db: ApiDb, out: list[Finding]) -> None:
                         t.line,
                         t.col,
                         f'Sending "{kind}" from addon code outside instances needs a hardware event (a key press or click) in Forever: '
-                        "calls from timers or event handlers fail there (inside dungeons and raids it works). EMOTE joined SAY and YELL in 1.60.1.",
+                        "calls from timers or event handlers fail there. Inside dungeons and raids addons could always send them, but a beta tester "
+                        "reported on 18/10 that in Forever they no longer can (not confirmed). EMOTE joined SAY and YELL in 1.60.1.",
                         "SendChatMessage",
                         extra={"chatType": kind},
                     )

@@ -218,3 +218,10 @@ def test_frame_strata_comparison(db):
     src = 'if frame:GetFrameStrata() == "HIGH" then end\nif "LOW" ~= self.bar:GetFrameStrata() then end\nlocal s = frame:GetFrameStrata()'
     f = [x for x in lint(db, src) if x.name == "GetFrameStrata"]
     assert [x.line for x in f] == [1, 2]
+
+
+def test_beta_event_quirks_are_notes(db):
+    src = 'f:RegisterEvent("PLAYER_DEAD")\nf:RegisterEvent("MERCHANT_CLOSED")\nf:RegisterEvent("ZONE_CHANGED_NEW_AREA")\nf:RegisterEvent("PLAYER_LOGIN")'
+    f = by_rule(lint(db, src), "FL013")
+    assert [x.name for x in f] == ["PLAYER_DEAD", "MERCHANT_CLOSED", "ZONE_CHANGED_NEW_AREA"]
+    assert all(x.severity == "note" and "not confirmed" in x.message for x in f)

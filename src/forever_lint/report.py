@@ -26,6 +26,7 @@ RULES = {
     "FL010": ("toc-game-type", "TOC excludes the Forever game type", ERROR),
     "FL011": ("chat-hardware-event", "SAY/YELL/EMOTE sent without a hardware event", NOTE),
     "FL012": ("trial-addon-messages", "Addon messages fail on trial accounts", NOTE),
+    "FL013": ("beta-event-quirk", "Event that behaves differently in Forever (reported in the beta)", NOTE),
 }
 
 SEVERITY_ORDER = {ERROR: 0, WARNING: 1, NOTE: 2}

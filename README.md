@@ -44,8 +44,9 @@ forever-lint path/to/MyAddon   # one addon, a repo with several, or your whole A
 | <a id="fl008-no-forever-toc"></a>**FL008** no-forever-toc | error | No TOC that Forever loads. It looks for `_Camelot`, `_Forever`, `_Mainline`, then the plain `.toc`. |
 | <a id="fl009-toc-interface"></a>**FL009** toc-interface | warning | The TOC's `## Interface:` does not list 16001, so the addon shows as out of date. |
 | <a id="fl010-toc-game-type"></a>**FL010** toc-game-type | note | The TOC excludes Forever with `AllowLoadGameType`/`ExcludeLoadGameType`. Fine if on purpose. |
-| <a id="fl011-chat-hardware-event"></a>**FL011** chat-hardware-event | note | `SendChatMessage` with SAY, YELL or EMOTE: outside instances it needs a key press or click (EMOTE since 1.60.1). |
+| <a id="fl011-chat-hardware-event"></a>**FL011** chat-hardware-event | note | `SendChatMessage` with SAY, YELL or EMOTE: outside instances it needs a key press or click (EMOTE since 1.60.1). Inside instances a beta tester reported it no longer works at all (18/10, not confirmed). |
 | <a id="fl012-trial-addon-messages"></a>**FL012** trial-addon-messages | note | Trial accounts cannot send addon messages (1.60.1). Reported once per addon. |
+| <a id="fl013-beta-event-quirk"></a>**FL013** beta-event-quirk | note | Events an addon author reported behave differently in Forever's beta (18/10, not confirmed): `PLAYER_DEAD` and the `MERCHANT_CLOSED`/`AUCTION_HOUSE_CLOSED` pair fire twice, and the zone text right after `ZONE_CHANGED_NEW_AREA` can be stale or empty after travelling. |
 
 It follows the TOC Forever would pick, including `[AllowLoadGameType ...]` per file and the `<Script>`/`<Include>` files of XML, so code for other clients is not reported. `--all-files` checks every `.lua` file instead.
 
