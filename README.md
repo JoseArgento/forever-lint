@@ -6,7 +6,7 @@ Forever looks like Classic but runs the modern client: Classic-era version numbe
 
 ```
 $ forever-lint MyAddon
-forever-lint 0.1.0 · WoW Forever 1.60.1 (70532), interface 16001
+forever-lint 0.2.0 · WoW Forever 1.60.1 (70532), interface 16001
 
 MyAddon  (MyAddon, MyAddon.toc, 2 Lua files)
   warning FL009 MyAddon.toc declares Interface 11509, 120105 but Forever is 16001: the addon shows as out of date ...
@@ -99,7 +99,7 @@ For [pre-commit](https://pre-commit.com):
 ```yaml
 repos:
   - repo: https://github.com/JoseArgento/forever-lint
-    rev: v0.1.0
+    rev: v0.2.0
     hooks:
       - id: forever-lint
 ```

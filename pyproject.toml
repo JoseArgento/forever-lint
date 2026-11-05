@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "forever-lint"
-version = "0.1.0"
+version = "0.2.0"
 description = "Checks World of Warcraft addons for problems on WoW Forever: removed API, secret values, project ID checks, events and TOC files."
 readme = "README.md"
 license = "MIT"

@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (0.2.0)
+## 0.2.0 (2026-11-05)
 
 - `--export-luals`: a LuaLS `---@meta` file with a stub for every function Forever has (deprecation fallbacks marked `---@deprecated`, secret-value functions annotated), for editors until vscode-wow-api and wowlua-ls get a Forever flavor.
 - Compatibility index: 47 addons (was 15), and a shields.io endpoint badge per addon at `badge/<slug>.json`.
