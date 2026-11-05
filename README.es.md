@@ -10,6 +10,21 @@ Forever parece Classic, pero corre el cliente moderno: números de versión de C
 
 [Read in English](README.md)
 
+![El índice de addons de Forever, armado con forever-lint](docs/index.png)
+
+**En vivo:** [Índice de addons de Forever](https://joseargento.github.io/forever-lint/) · [Tabla de API movidas](https://joseargento.github.io/forever-lint/api.html) · [Feed RSS: addons que empezaron a andar esta semana](https://joseargento.github.io/forever-lint/feed.xml)
+
+**Contenido**
+
+- [Instalar y usar](#instalar-y-usar)
+- [Qué revisa](#qué-revisa)
+- [En CI](#en-ci)
+- [Índice de compatibilidad](#índice-de-compatibilidad)
+- [De dónde salen los datos](#de-dónde-salen-los-datos)
+- [Feed "ya anda en Forever"](#feed-ya-anda-en-forever)
+- [Límites](#límites)
+- [Apoyar](#apoyar)
+
 ## Instalar y usar
 
 ```bash
@@ -80,5 +95,9 @@ Cada semana el índice se compara con el anterior, y los addons que mejoraron (d
 - "Probably replaced by" es un reemplazo encontrado por nombre. Revisá argumentos y retornos (muchas `C_` devuelven una tabla).
 - Todavía no revisa métodos de widgets ni constantes globales.
 - Los eventos los lee de textos fijos (`RegisterEvent("PLAYER_DEAD")`) y, si un archivo los registra desde una variable (`for event in pairs(handlers) do frame:RegisterEvent(event) end`), de las claves de sus tablas de manejadores (`PLAYER_DEAD = function`). Los que se arman al correr (`"UNIT_" .. tipo`) no los sigue.
+
+## Apoyar
+
+Todo esto es gratis y de código abierto, y va a seguir así: no hay funciones pagas ni nada antes para quien aporta. Si te sirvió y querés bancar el tiempo de mantenerlo (con cada parche de Blizzard hay que actualizar los datos y arreglar lo que se rompe), podés hacerlo en [Patreon](https://www.patreon.com/cw/DoblePupi). Gracias ♥
 
 Sin relación con Blizzard Entertainment. World of Warcraft es marca registrada de Blizzard Entertainment, Inc. Licencia MIT.

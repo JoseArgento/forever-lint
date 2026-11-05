@@ -23,6 +23,24 @@ MyAddon/Core.lua
 
 [Leer en castellano](README.es.md)
 
+![The Forever Addon Index, built by forever-lint](docs/index.png)
+
+**Live:** [Forever Addon Index](https://joseargento.github.io/forever-lint/) · [API migration table](https://joseargento.github.io/forever-lint/api.html) · [RSS feed: addons that started working this week](https://joseargento.github.io/forever-lint/feed.xml)
+
+**Contents**
+
+- [Install](#install)
+- [What it checks](#what-it-checks)
+- [With luacheck or pre-commit](#with-luacheck-or-pre-commit)
+- [Options](#options)
+- [In CI (GitHub Actions)](#in-ci-github-actions)
+- [Compatibility index](#compatibility-index)
+- [Where the data comes from](#where-the-data-comes-from)
+- [Limitations](#limitations)
+- [Tested on](#tested-on)
+- [Support](#support)
+- [License](#license)
+
 ## Install
 
 ```bash
@@ -154,7 +172,7 @@ Questie, Details!, Bartender4, BigWigs and Deadly Boss Mods (November 2026 versi
 
 ## Support
 
-forever-lint is free and open source. Not affiliated with or endorsed by Blizzard Entertainment. World of Warcraft is a trademark of Blizzard Entertainment, Inc.
+All of this is free and open source, and it stays that way: no paid features, nothing early for supporters. If it helped you and you want to cover the time it takes to keep it working (every Blizzard patch means refreshing the data and fixing what broke), you can do that on [Patreon](https://www.patreon.com/cw/DoblePupi). Thanks ♥
 
 ## License
 
