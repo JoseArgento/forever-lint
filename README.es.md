@@ -18,6 +18,7 @@ Forever parece Classic, pero corre el cliente moderno: números de versión de C
 
 - [Instalar y usar](#instalar-y-usar)
 - [Qué revisa](#qué-revisa)
+- [Con luacheck o con el editor](#con-luacheck-o-con-el-editor)
 - [En CI](#en-ci)
 - [Índice de compatibilidad](#índice-de-compatibilidad)
 - [De dónde salen los datos](#de-dónde-salen-los-datos)
@@ -61,6 +62,10 @@ Para no llenarte de falsos positivos:
 
 Silenciar: `-- forever-lint: ignore FL001` en la línea, `-- forever-lint: ignore-next-line`, `-- forever-lint: ignore-file`, o `--ignore FL002,FL004`.
 
+## Con luacheck o con el editor
+
+`forever-lint --export-luacheck` imprime un bloque `read_globals` para `.luacheckrc` con toda la API de Forever (sin los alias de compatibilidad). `forever-lint --export-luals > forever-api.lua` imprime un archivo `---@meta` para [LuaLS](https://luals.github.io): un stub por cada función de Forever, por namespace, con los alias de compatibilidad marcados `---@deprecated` y una nota en las que devuelven valores secretos. Sumá su carpeta a `workspace.library` en `.luarc.json`. Son solo nombres: el linter no conoce tipos ni argumentos. Ni la extensión de Ketho ni wowlua-ls tienen todavía un sabor Forever (revisado el 4/11/2026); mandarles este dato es el plan ⏳.
+
 ## En CI
 
 ```yaml
@@ -73,7 +78,15 @@ Sube un SARIF a code scanning, así los hallazgos aparecen como anotaciones en e
 
 ## Índice de compatibilidad
 
-`index/` arma una web estática: corre forever-lint sobre addons populares con repo público en GitHub (`index/addons.json`) y la publica en GitHub Pages cada semana. Muestra archivo, línea y mensaje de cada hallazgo, nunca el código de los addons. Para sumar un addon, abrí un pull request con su repo en `index/addons.json`.
+`index/` arma una web estática: corre forever-lint sobre addons populares con repo público en GitHub (`index/addons.json`) y la publica en GitHub Pages cada semana. Muestra archivo, línea y mensaje de cada hallazgo, nunca el código de los addons. Para sumar un addon, abrí un pull request con su repo en `index/addons.json`; para sacar el tuyo, abrí un issue y sale en la corrida siguiente. Hoy son 47 addons.
+
+Cada addon del índice tiene además un **badge** en `badge/<slug>.json` (formato endpoint de shields.io: *ready*, *N warnings*, *N errors* o *won't load*), para que su autor muestre el estado en su README:
+
+```markdown
+![WoW Forever](https://img.shields.io/endpoint?url=https://joseargento.github.io/forever-lint/badge/questie.json)
+```
+
+El slug es el nombre del addon en minúsculas, con todo lo que no es letra o número cambiado por `-` (`Details! Damage Meter` → `details--damage-meter`); está en `data.json`.
 
 La misma web tiene una **tabla de API movida** (`api.html`, también como `api.json`): cada función que existía en algún Classic y en Forever no está, se movió o está restringida, con su reemplazo, más los alias de compatibilidad, los valores secretos y los eventos.
 

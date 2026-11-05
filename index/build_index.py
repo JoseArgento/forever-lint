@@ -111,6 +111,30 @@ def summarize(entry: dict, path: Path, report: dict) -> dict:
     }
 
 
+BADGES = {
+    "clean": ("ready", "brightgreen"),
+    "warnings": ("warnings", "yellow"),
+    "errors": ("errors", "orange"),
+    "no-load": ("won't load", "red"),
+}
+
+
+def badge(result: dict) -> dict:
+    """A shields.io endpoint badge (https://shields.io/badges/endpoint-badge) for one addon's status."""
+    message, color = BADGES[result["status"]]
+    c = result["counts"]
+    if result["status"] in ("errors", "warnings"):
+        n = c["error"] if result["status"] == "errors" else c["warning"]
+        message = f"{n} {message}" if n else message
+    return {"schemaVersion": 1, "label": "WoW Forever", "message": message, "color": color}
+
+
+def write_badges(results: list[dict], folder: Path) -> None:
+    folder.mkdir(parents=True, exist_ok=True)
+    for r in results:
+        (folder / f"{r['slug']}.json").write_text(json.dumps(badge(r)) + "\n", encoding="utf-8")
+
+
 def lint(path: Path) -> dict:
     """Runs forever-lint from inside the repo so every path in the report is relative to it."""
     args = cli.build_parser().parse_args([".", "--format", "json", "--fail-on", "never"])
@@ -159,6 +183,7 @@ def main() -> int:
     }
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "data.json").write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    write_badges(results, args.out / "badge")
     page = (ROOT / "index" / "template.html").read_text(encoding="utf-8")
     page = page.replace("/*__DATA__*/", "var INDEX_DATA = " + json.dumps(data, ensure_ascii=False).replace("</", "<\\/") + ";")
     (args.out / "index.html").write_text(page, encoding="utf-8")

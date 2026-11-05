@@ -119,11 +119,14 @@ def deprecation_files(addons: Path, game_types: set[str], placeholders: dict[str
         ):
             continue
         tocs = sorted(folder.glob("*.toc"))
-        if tocs:
+        if tocs and "eprecat" in folder.name:
             files = toc_loads(tocs[0], game_types, placeholders)
             if files:
                 loaded += files
-        else:  # only part of the addon was checked out (FrameXML, Settings): take the deprecation files
+        else:
+            # FrameXML and Settings hold a couple of deprecation files among hundreds of others. Only those count,
+            # whether the checkout is sparse (the workflow) or complete (a full clone has a TOC that loads everything,
+            # and `OnAccept = function` fields of StaticPopup tables would be taken for shims).
             loaded += [f for f in folder.rglob("*.lua") if "eprecat" in f.name]
     return loaded
 

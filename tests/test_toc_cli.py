@@ -134,3 +134,41 @@ def test_api_migration_table(tmp_path):
     assert "C_Engraving.GetRuneCategories" in rows  # Season of Discovery API
     assert all(r["in"] for r in data["moved"])  # only names some Classic client had
     assert any(e["n"] == "COMBAT_LOG_EVENT_UNFILTERED" and e["k"] == "restricted" for e in data["events"])
+
+
+def test_export_luals():
+    out, code = run("--export-luals")
+    assert code == 0 and out.startswith("---@meta\n")
+    assert "---@class C_Spell\nC_Spell = {}\n" in out and "function C_Spell.GetSpellInfo(...) end" in out
+    assert "function GetSpellInfo(...) end" not in out  # removed in Forever
+    assert "---@deprecated Deprecation fallback; use C_ActionBar.HasRangeRequirements\nfunction ActionHasRange(...) end" in out
+    assert "--- Returns secret values always (see forever-lint FL003).\nfunction UnitHealth(...) end" in out
+    try:
+        from lupa import lua51
+    except ImportError:  # structural check only
+        assert all(line.startswith(("---", "--", "function ", "C_")) or line == "" or " = {}" in line for line in out.splitlines())
+        return
+    lua = lua51.LuaRuntime()
+    lua.execute(out)  # valid Lua 5.1, the game's Lua
+    g = lua.globals()
+    assert g.GetTime is not None and g.C_Spell.GetSpellInfo is not None and g.GetSpellInfo is None
+
+
+def test_badges(tmp_path):
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("build_index", Path(__file__).resolve().parents[1] / "index" / "build_index.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    results = [
+        {"slug": "bagnon", "status": "clean", "counts": {"error": 0, "warning": 0, "note": 0}},
+        {"slug": "dbm", "status": "warnings", "counts": {"error": 0, "warning": 3, "note": 1}},
+        {"slug": "elvui", "status": "errors", "counts": {"error": 12, "warning": 3, "note": 0}},
+        {"slug": "weakauras", "status": "no-load", "counts": {"error": 0, "warning": 0, "note": 0}},
+    ]
+    mod.write_badges(results, tmp_path / "badge")
+    got = {p.stem: json.loads(p.read_text()) for p in (tmp_path / "badge").glob("*.json")}
+    assert got["bagnon"] == {"schemaVersion": 1, "label": "WoW Forever", "message": "ready", "color": "brightgreen"}
+    assert got["dbm"]["message"] == "3 warnings" and got["dbm"]["color"] == "yellow"
+    assert got["elvui"]["message"] == "12 errors" and got["elvui"]["color"] == "orange"
+    assert got["weakauras"]["message"] == "won't load" and got["weakauras"]["color"] == "red"

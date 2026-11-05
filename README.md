@@ -31,7 +31,7 @@ MyAddon/Core.lua
 
 - [Install](#install)
 - [What it checks](#what-it-checks)
-- [With luacheck or pre-commit](#with-luacheck-or-pre-commit)
+- [With luacheck, your editor or pre-commit](#with-luacheck-your-editor-or-pre-commit)
 - [Options](#options)
 - [In CI (GitHub Actions)](#in-ci-github-actions)
 - [Compatibility index](#compatibility-index)
@@ -88,9 +88,11 @@ OldThing()
 
 Or skip whole rules with `--ignore FL002,FL004`.
 
-## With luacheck or pre-commit
+## With luacheck, your editor or pre-commit
 
 `forever-lint --export-luacheck > .luacheckrc.forever` prints a `read_globals` block with every function Forever has (deprecation fallbacks left out), to paste into an existing `.luacheckrc`.
+
+`forever-lint --export-luals > forever-api.lua` prints a [LuaLS](https://luals.github.io) `---@meta` file: a stub for every function Forever has, grouped by namespace, with the deprecation fallbacks marked `---@deprecated` (the editor strikes them through) and a note on the functions that return secret values. Add the file's folder to `workspace.library` in `.luarc.json` and the language server knows what exists in Forever. Names only: the linter does not know argument or return types. Neither [Ketho's vscode-wow-api](https://github.com/Ketho/vscode-wow-api) nor [wowlua-ls](https://github.com/TradeSkillMaster/wowlua-ls) ships a Forever flavor yet (checked 4 November 2026); this file fills the gap until they do, and contributing Forever to them from this data is the plan ⏳.
 
 For [pre-commit](https://pre-commit.com):
 
@@ -109,6 +111,8 @@ forever-lint PATH... [--format text|json|sarif] [-o FILE] [--fail-on error|warni
                      [--ignore RULES] [--libs] [--all-files] [--no-color]
 forever-lint --explain GetSpellInfo     # what Forever has for a name
 forever-lint --list-rules
+forever-lint --export-luacheck            # read_globals block for .luacheckrc
+forever-lint --export-luals               # LuaLS ---@meta stubs for the editor
 ```
 
 The exit code is 1 when there is a finding at the `--fail-on` severity (default `error`) outside libraries.
@@ -136,7 +140,15 @@ Without the action: `pip install forever-lint && forever-lint . --format sarif -
 
 ## Compatibility index
 
-`index/` builds a static site that runs forever-lint over popular addons with public GitHub repositories (`index/addons.json`) and publishes the results with GitHub Pages every week. It shows file, line and message for every finding, never the addons' code. To add an addon, open a pull request with its repository in `index/addons.json`.
+`index/` builds a static site that runs forever-lint over popular addons with public GitHub repositories (`index/addons.json`) and publishes the results with GitHub Pages every week. It shows file, line and message for every finding, never the addons' code. To add an addon, open a pull request with its repository in `index/addons.json`; to have yours removed, open an issue and it comes out in the next run.
+
+Every addon in the index also gets a **badge** at `badge/<slug>.json` (shields.io endpoint format: *ready*, *N warnings*, *N errors* or *won't load*), so its author can show the current status in their README:
+
+```markdown
+![WoW Forever](https://img.shields.io/endpoint?url=https://joseargento.github.io/forever-lint/badge/questie.json)
+```
+
+The slug is the addon's name in lower case with everything that is not a letter or a digit turned into `-` (`Details! Damage Meter` → `details--damage-meter`); it is in `data.json`.
 
 ```bash
 python index/build_index.py --cache .index-cache --out site   # then open site/index.html
@@ -168,7 +180,7 @@ Only API names and flags are shipped. No Blizzard code is included.
 
 ## Tested on
 
-Questie, Details!, Bartender4, BigWigs and Deadly Boss Mods (November 2026 versions). Questie and Details already ship a `_Camelot.toc`. The few errors left in them are calls to missing APIs in code that Forever's TOC loads.
+The 47 addons of the compatibility index (4 November 2026: Bagnon, HandyNotes, LittleWigs, Mapster, Masque and SexyMap come out clean; WeakAuras, Cell, Tukui and RCLootCouncil have no TOC Forever loads), with Questie, Details!, Bartender4, BigWigs and Deadly Boss Mods reviewed by hand. Questie and Details already ship a `_Camelot.toc`. The few errors left in them are calls to missing APIs in code that Forever's TOC loads.
 
 ## Support
 

@@ -1,20 +1,193 @@
 {
-  "_comment": "Public GitHub repositories checked by the compatibility index. Add an entry and open a pull request to include another addon.",
+  "_comment": "Public GitHub repositories checked by the compatibility index. To add an addon, open a pull request with its repository; to have yours removed, open an issue and it comes out in the next run.",
   "addons": [
-    {"name": "Questie", "repo": "Questie/Questie"},
-    {"name": "Details! Damage Meter", "repo": "Tercioo/Details-Damage-Meter"},
-    {"name": "BigWigs", "repo": "BigWigsMods/BigWigs"},
-    {"name": "LittleWigs", "repo": "BigWigsMods/LittleWigs"},
-    {"name": "Deadly Boss Mods", "repo": "DeadlyBossMods/DeadlyBossMods"},
-    {"name": "DBM Vanilla", "repo": "DeadlyBossMods/DBM-Vanilla"},
-    {"name": "Bartender4", "repo": "Nevcairiel/Bartender4"},
-    {"name": "ElvUI", "repo": "tukui-org/ElvUI"},
-    {"name": "WeakAuras", "repo": "WeakAuras/WeakAuras2"},
-    {"name": "Plater Nameplates", "repo": "Tercioo/Plater-Nameplates"},
-    {"name": "AdiBags", "repo": "AdiAddons/AdiBags"},
-    {"name": "OmniCC", "repo": "tullamods/OmniCC"},
-    {"name": "Bagnon", "repo": "Jaliborc/Bagnon"},
-    {"name": "NDui", "repo": "Witnesscm/NDui"},
-    {"name": "RealUI", "repo": "Gethe/RealUI"}
+    {
+      "name": "AdiBags",
+      "repo": "AdiAddons/AdiBags"
+    },
+    {
+      "name": "AllTheThings",
+      "repo": "DFortun81/AllTheThings"
+    },
+    {
+      "name": "AtlasLoot Classic",
+      "repo": "Hoizame/AtlasLootClassic"
+    },
+    {
+      "name": "Bagnon",
+      "repo": "Jaliborc/Bagnon"
+    },
+    {
+      "name": "Bartender4",
+      "repo": "Nevcairiel/Bartender4"
+    },
+    {
+      "name": "BigWigs",
+      "repo": "BigWigsMods/BigWigs"
+    },
+    {
+      "name": "BugSack",
+      "repo": "funkydude/BugSack"
+    },
+    {
+      "name": "Cell",
+      "repo": "enderneko/Cell"
+    },
+    {
+      "name": "ClassicCastbars",
+      "repo": "wardz/ClassicCastbars"
+    },
+    {
+      "name": "DBM Vanilla",
+      "repo": "DeadlyBossMods/DBM-Vanilla"
+    },
+    {
+      "name": "Deadly Boss Mods",
+      "repo": "DeadlyBossMods/DeadlyBossMods"
+    },
+    {
+      "name": "Decursive",
+      "repo": "2072/Decursive"
+    },
+    {
+      "name": "Dejunk",
+      "repo": "moody/Dejunk"
+    },
+    {
+      "name": "Details! Damage Meter",
+      "repo": "Tercioo/Details-Damage-Meter"
+    },
+    {
+      "name": "Dominos",
+      "repo": "tullamods/Dominos"
+    },
+    {
+      "name": "ElvUI",
+      "repo": "tukui-org/ElvUI"
+    },
+    {
+      "name": "Gargul",
+      "repo": "papa-smurf/Gargul"
+    },
+    {
+      "name": "GatherMate2",
+      "repo": "Nevcairiel/GatherMate2"
+    },
+    {
+      "name": "Grid2",
+      "repo": "michaelnpsp/Grid2"
+    },
+    {
+      "name": "HandyNotes",
+      "repo": "Nevcairiel/HandyNotes"
+    },
+    {
+      "name": "Hekili",
+      "repo": "Hekili/hekili"
+    },
+    {
+      "name": "Kui Nameplates",
+      "repo": "Kesava-wow/kuinameplates2"
+    },
+    {
+      "name": "LittleWigs",
+      "repo": "BigWigsMods/LittleWigs"
+    },
+    {
+      "name": "Luna Unit Frames",
+      "repo": "Aviana/LunaUnitFrames"
+    },
+    {
+      "name": "Mapster",
+      "repo": "Nevcairiel/Mapster"
+    },
+    {
+      "name": "Masque",
+      "repo": "SFX-WoW/Masque"
+    },
+    {
+      "name": "Musca Auras",
+      "repo": "lucaci82/Musca-Auras"
+    },
+    {
+      "name": "Narcissus",
+      "repo": "Peterodox/Narcissus"
+    },
+    {
+      "name": "NDui",
+      "repo": "Witnesscm/NDui"
+    },
+    {
+      "name": "OmniBar",
+      "repo": "jordonwow/omnibar"
+    },
+    {
+      "name": "OmniCC",
+      "repo": "tullamods/OmniCC"
+    },
+    {
+      "name": "Plater Nameplates",
+      "repo": "Tercioo/Plater-Nameplates"
+    },
+    {
+      "name": "Quartz",
+      "repo": "Nevcairiel/Quartz"
+    },
+    {
+      "name": "Questie",
+      "repo": "Questie/Questie"
+    },
+    {
+      "name": "Rarity",
+      "repo": "WowRarity/Rarity"
+    },
+    {
+      "name": "RCLootCouncil",
+      "repo": "evil-morfar/RCLootCouncil2"
+    },
+    {
+      "name": "RCLootCouncil Classic",
+      "repo": "evil-morfar/RCLootCouncil_Classic"
+    },
+    {
+      "name": "RealUI",
+      "repo": "Gethe/RealUI"
+    },
+    {
+      "name": "Scrap",
+      "repo": "Jaliborc/Scrap"
+    },
+    {
+      "name": "SexyMap",
+      "repo": "funkydude/SexyMap"
+    },
+    {
+      "name": "Shadowed Unit Frames",
+      "repo": "Shadowed/ShadowedUnitFrames"
+    },
+    {
+      "name": "SpartanUI",
+      "repo": "Wutname1/SpartanUI"
+    },
+    {
+      "name": "Threat Plates",
+      "repo": "Backupiseasy/ThreatPlates"
+    },
+    {
+      "name": "ThreatClassic2",
+      "repo": "dfherr/ThreatClassic2"
+    },
+    {
+      "name": "Total RP 3",
+      "repo": "Ellypse/Total-RP-3"
+    },
+    {
+      "name": "Tukui",
+      "repo": "tukui-org/Tukui"
+    },
+    {
+      "name": "WeakAuras",
+      "repo": "WeakAuras/WeakAuras2"
+    }
   ]
 }

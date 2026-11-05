@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated": "2026-11-03",
+ "generated": "2026-11-05",
  "forever": {
   "version": "1.60.1",
   "build": 70532,
@@ -9,7 +9,7 @@
    "name": "WOW_PROJECT_CAMELOT",
    "id": 18
   },
-  "ui_source": "1.60.1 (70755)"
+  "ui_source": "1.60.1 (70790)"
  },
  "classic_era": {
   "version": "1.15.9",

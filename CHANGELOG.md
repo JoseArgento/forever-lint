@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased (0.2.0)
+
+- `--export-luals`: a LuaLS `---@meta` file with a stub for every function Forever has (deprecation fallbacks marked `---@deprecated`, secret-value functions annotated), for editors until vscode-wow-api and wowlua-ls get a Forever flavor.
+- Compatibility index: 47 addons (was 15), and a shields.io endpoint badge per addon at `badge/<slug>.json`.
+- API database rebuilt against the launch-day UI source 1.60.1 (70790): no API changes (Blizzard added documentation for `C_BattleNet.GetDefaultTitleWhisperTarget`; the client dump is still 70532). `tools/build_db.py` no longer takes `OnAccept = function` fields of StaticPopup tables for deprecation shims when run on a full checkout of the UI source.
+- Launch day (4 November 2026): no new event quirks reported in the addon feedback threads, so FL013 is unchanged.
+
 ## 0.1.0 (2026-11-04)
 
 First release, against WoW Forever 1.60.1 (70532) and its UI source 1.60.1 (70755).
